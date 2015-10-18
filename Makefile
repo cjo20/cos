@@ -1,6 +1,6 @@
-OBJECTS = loader.o kmain.o
+OBJECTS = io.o fb.o kmain.o loader.o  
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c
+CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -x c -c
 LDFLAGS  = -T link.ld -melf_i386
 AS = nasm
 ASFLAGS = -f elf32
