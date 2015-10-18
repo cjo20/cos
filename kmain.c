@@ -1,10 +1,14 @@
 #include "fb.h"
 #include "serial.h"
+#include "gdt.h"
 
 int kmain()
 {
+
 	int i = 0;
 	char c[2];
+	
+	gdt_install();
 
 	fb_clear();
 	test();
