@@ -55,7 +55,7 @@ void fb_clear()
 		fb_write_cell(i, ' ', 0, 0);
 	}
 }
-int write(char * buf, unsigned int len)
+int fb_write(char * buf, unsigned int len)
 {	
 	unsigned int i = 0;
 	unsigned int new_position = position;
