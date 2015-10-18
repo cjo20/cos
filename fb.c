@@ -1,5 +1,5 @@
 #include "io.h"
-
+#include "mem.h"
 /* The I/O ports */
 #define FB_COMMAND_PORT		0x3D4
 #define FB_DATA_PORT		0x3D5
@@ -9,6 +9,9 @@
 #define FB_LOW_BYTE_COMMAND		15
 
 char * fb = (char *)0x000B8000;
+static unsigned int position = 0;
+static const unsigned int max_position = 25 * 80;
+
 /** fb_move_cursor:
 *	Moves the cursor of the framebuffer to the given position
 *
@@ -43,26 +46,53 @@ void test()
 		fb_write_cell(position + i, 'A', 0, i);
 	}	
 }
-int write(char * buf, unsigned int len)
+
+void fb_clear()
 {
-	static int position = 0;
-	const int max_position = 25 * 80;
-	
+	int i =0;
+	for (i = 0; i < 80*25; ++i)
+	{
+		fb_write_cell(i, ' ', 0, 0);
+	}
+}
+int write(char * buf, unsigned int len)
+{	
 	unsigned int i = 0;
+	unsigned int new_position = position;
+	char non_printable = 0;
+
 	for (i = 0; i < len; ++i)
 	{
 		char c = *(buf + i);
 
 		if (c == '\n')
 		{
-			position += 80;
-			position -= position % 80;
+			new_position += 80;
+			new_position -= (position % 80);
+			non_printable = 1;
 		}
 		else
 		{
-			fb_write_cell(position++, *(buf+i), 7, 0);
-			position %= max_position;
+			new_position += 1;
 		}
+
+		if (new_position >= max_position)
+		{
+			//Scroll!
+			int line = 0;
+			for (line = 0; line < 25; ++line)
+			{
+				memcpy(fb + 160*line, fb + 160*(line + 1), 160);
+			}
+			new_position -= 80;
+		}
+
+		if (!non_printable)
+		{
+			fb_write_cell(position, *(buf+i), 7, 0);
+		}
+
+		position = new_position;
 	}
 	fb_move_cursor(position);
 	
