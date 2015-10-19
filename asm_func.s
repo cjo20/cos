@@ -15,3 +15,9 @@ flush_gdt:
 	jmp 0x08:flush2
 flush2:
 	ret 				; return
+
+
+global io_wait
+
+io_wait:
+	ret
