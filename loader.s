@@ -1,23 +1,23 @@
-global loader
 
 MAGIC_NUMBER 	equ 0x1BADB002
-FLAGS		 	equ 0x0
-CHECKSUM	 	equ -MAGIC_NUMBER
+HEADER_FLAGS	equ 0x00000001
+CHECKSUM	 	equ -(MAGIC_NUMBER + HEADER_FLAGS)
 
-extern kmain
-section .text
-align 4
+SECTION .__mbHeader
+align 0x4
 	dd MAGIC_NUMBER
-	dd FLAGS
+	dd HEADER_FLAGS
 	dd CHECKSUM	
 
-
-loader:
-	mov eax, 0xCAFEBABE
+section .text
+align 4
+extern kmain
+global _start
+_start:
+	cli
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
 	;xchg bx, bx
- 	call kmain
- 	;mov dword [0x000B8000], 0x4128		
+ 	call kmain	
 .loop:
 	jmp .loop
 

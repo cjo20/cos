@@ -1,4 +1,4 @@
-OBJECTS = asm_func.o mem.o io.o interrupt.o int_handler.o pic.o gdt.o serial.o fb.o kmain.o loader.o  
+OBJECTS = asm_func.o mem.o io.o interrupt.o int_handler.o pic.o gdt.o serial.o fb.o keyboard.o kmain.o loader.o  
 CC = gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -x c -c
 LDFLAGS  = -T link.ld -melf_i386

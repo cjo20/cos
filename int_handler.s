@@ -1,49 +1,79 @@
+section .text
+align 4
 %macro no_error_code_interrupt_handler 1
-global interrupt_handler_%1
-interrupt_handler_%1:
+global isr%1
+isr%1:
 	push 	dword 0
-
 	push 	dword %1
-	
 	jmp 	common_interrupt_handler
 %endmacro
 
 %macro error_code_interrupt_handler 1
-global interrupt_handler_%1
-interrupt_handler_%1:
+global isr%1
+isr%1:
 	push 	dword %1
-	xchg 	bx, bx
-
 	jmp 	common_interrupt_handler
 %endmacro
 
+%macro no_error_code_irq_handler 1
+global irq%1
+irq%1:
+	push dword 0
+	push dword %1
+	jmp irq_common_stub
+%endmacro
+
+
+
+
+extern irq_handler
+irq_common_stub:
+	pusha
+	push ds
+	push es
+	push fs
+	push gs
+	mov ax, 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov eax, esp
+	push eax
+	mov eax, irq_handler
+	call eax
+	pop eax
+	pop gs
+	pop fs
+	pop es
+	pop ds
+	popa
+	add esp, 8
+	iret
 
 extern interrupt_handler
-
 common_interrupt_handler:
-	xchg 	bx, bx
+	ousha
+	push ds
+	push es
+	push fs
+	push gs
+	mov ax, 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	mov eax, esp
 	push eax
-	push ebx
-	push ecx
-	push edx
-	push esp
-	push ebp
-	push esi
-	push edi
-
-	call interrupt_handler
-
-	pop edi
-	pop esi
-	pop ebp
-	pop esp
-	pop edx
-	pop ecx
-	pop ebx
+	mov eax, interrupt_handler
+	call eax
 	pop eax
-
+	pop gs
+	pop fs
+	pop es
+	pop ds
+	popa
 	add esp, 8
-
 	iret
 
 no_error_code_interrupt_handler 0
@@ -71,102 +101,7 @@ no_error_code_interrupt_handler 28
 no_error_code_interrupt_handler 29
 no_error_code_interrupt_handler 30
 no_error_code_interrupt_handler 31
-error_code_interrupt_handler 32
-error_code_interrupt_handler 33
-no_error_code_interrupt_handler 34
-no_error_code_interrupt_handler 35
-no_error_code_interrupt_handler 36
-no_error_code_interrupt_handler 37
-no_error_code_interrupt_handler 38
-no_error_code_interrupt_handler 39
-no_error_code_interrupt_handler 40
-no_error_code_interrupt_handler 41
-no_error_code_interrupt_handler 42
-no_error_code_interrupt_handler 43
-no_error_code_interrupt_handler 44
-no_error_code_interrupt_handler 45
-no_error_code_interrupt_handler 46
-no_error_code_interrupt_handler 47
-no_error_code_interrupt_handler 48
-no_error_code_interrupt_handler 49
-no_error_code_interrupt_handler 50
-no_error_code_interrupt_handler 51
-no_error_code_interrupt_handler 52
-no_error_code_interrupt_handler 53
-no_error_code_interrupt_handler 54
-no_error_code_interrupt_handler 55
-no_error_code_interrupt_handler 56
-no_error_code_interrupt_handler 57
-no_error_code_interrupt_handler 58
-no_error_code_interrupt_handler 59
-no_error_code_interrupt_handler 60
-no_error_code_interrupt_handler 61
-no_error_code_interrupt_handler 62
-no_error_code_interrupt_handler 63
-no_error_code_interrupt_handler 64
-no_error_code_interrupt_handler 65
-no_error_code_interrupt_handler 66
-no_error_code_interrupt_handler 67
-no_error_code_interrupt_handler 68
-no_error_code_interrupt_handler 69
-no_error_code_interrupt_handler 70
-no_error_code_interrupt_handler 71
-no_error_code_interrupt_handler 72
-no_error_code_interrupt_handler 73
-no_error_code_interrupt_handler 74
-no_error_code_interrupt_handler 75
-no_error_code_interrupt_handler 76
-no_error_code_interrupt_handler 77
-no_error_code_interrupt_handler 78
-no_error_code_interrupt_handler 79
-no_error_code_interrupt_handler 80
-no_error_code_interrupt_handler 81
-no_error_code_interrupt_handler 82
-no_error_code_interrupt_handler 83
-no_error_code_interrupt_handler 84
-no_error_code_interrupt_handler 85
-no_error_code_interrupt_handler 86
-no_error_code_interrupt_handler 87
-no_error_code_interrupt_handler 88
-no_error_code_interrupt_handler 89
-no_error_code_interrupt_handler 90
-no_error_code_interrupt_handler 91
-no_error_code_interrupt_handler 92
-no_error_code_interrupt_handler 93
-no_error_code_interrupt_handler 94
-no_error_code_interrupt_handler 95
-no_error_code_interrupt_handler 96
-no_error_code_interrupt_handler 97
-no_error_code_interrupt_handler 98
-no_error_code_interrupt_handler 99
-no_error_code_interrupt_handler 100
-no_error_code_interrupt_handler 101
-no_error_code_interrupt_handler 102
-no_error_code_interrupt_handler 103
-no_error_code_interrupt_handler 104
-no_error_code_interrupt_handler 105
-no_error_code_interrupt_handler 106
-no_error_code_interrupt_handler 107
-no_error_code_interrupt_handler 108
-no_error_code_interrupt_handler 109
-no_error_code_interrupt_handler 110
-no_error_code_interrupt_handler 111
-no_error_code_interrupt_handler 112
-no_error_code_interrupt_handler 113
-no_error_code_interrupt_handler 114
-no_error_code_interrupt_handler 115
-no_error_code_interrupt_handler 116
-no_error_code_interrupt_handler 117
-no_error_code_interrupt_handler 118
-no_error_code_interrupt_handler 119
-no_error_code_interrupt_handler 120
-no_error_code_interrupt_handler 121
-no_error_code_interrupt_handler 122
-no_error_code_interrupt_handler 123
-no_error_code_interrupt_handler 124
-no_error_code_interrupt_handler 125
-no_error_code_interrupt_handler 126
-no_error_code_interrupt_handler 127
+
 
 error_code_interrupt_handler 8
 error_code_interrupt_handler 10
@@ -175,6 +110,25 @@ error_code_interrupt_handler 12
 error_code_interrupt_handler 13
 error_code_interrupt_handler 14
 error_code_interrupt_handler 17
+
+no_error_code_irq_handler 0
+no_error_code_irq_handler 1
+no_error_code_irq_handler 2
+no_error_code_irq_handler 3
+no_error_code_irq_handler 4
+no_error_code_irq_handler 5
+no_error_code_irq_handler 6
+no_error_code_irq_handler 7
+no_error_code_irq_handler 8
+no_error_code_irq_handler 9
+no_error_code_irq_handler 10
+no_error_code_irq_handler 11
+no_error_code_irq_handler 12
+no_error_code_irq_handler 13
+no_error_code_irq_handler 14
+no_error_code_irq_handler 15
+
+
 
 global load_idt
 

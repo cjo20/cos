@@ -1,3 +1,6 @@
+section .text
+align 4
+
 global outb
 
 ;outb - send a byte to an I/O port

@@ -3,4 +3,5 @@
 int fb_write(char * buf, unsigned int len);
 void fb_clear();
 int test();
+int strlen(char * s);
 #endif

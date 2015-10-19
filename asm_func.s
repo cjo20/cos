@@ -1,3 +1,6 @@
+section .text
+align 4
+
 global flush_gdt
 
 ;flush_gdt - Writes GDT

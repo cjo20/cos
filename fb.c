@@ -98,3 +98,16 @@ int fb_write(char * buf, unsigned int len)
 	
 	return len;
 }
+
+int strlen(char * s)
+{
+	int i = 0;
+
+	while(*s != 0)
+	{
+		i++;
+		s++;
+	}
+
+	return i;
+}
