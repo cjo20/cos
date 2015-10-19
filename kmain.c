@@ -4,7 +4,7 @@
 #include "interrupt.h"
 #include "pic.h"
 #include "keyboard.h"
-
+#include "timer.h"
 int kmain()
 {
 
@@ -20,13 +20,16 @@ int kmain()
 
 
 	IRQ_clear_mask(1);
+	IRQ_clear_mask(0);
+
 	irq_install_handler(1, keyboard_handler);
+	irq_install_handler(0, timer_handler);
 	asm("sti");
 
 	test();
-	fb_write("hello, world\n", 13);
-	fb_write("test\n", 5);
-	
+	fb_clear();
+	fb_write("Chris' basic OS\n", 16);
+		
 	//i /= (i - 0);
 
 //	c[1] = '\n';

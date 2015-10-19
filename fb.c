@@ -8,7 +8,7 @@
 #define FB_HIGH_BYTE_COMMAND 	14
 #define FB_LOW_BYTE_COMMAND		15
 
-char * fb = (char *)0x000B8000;
+static char * fb = (char *)0x000B8000;
 static unsigned int position = 0;
 static const unsigned int max_position = 25 * 80;
 
@@ -25,7 +25,7 @@ static void fb_move_cursor(unsigned short pos)
 	outb(FB_DATA_PORT, 		pos & 0x00FF);
 }
 
-static void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
+void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
 {
 	fb[2*i] = c;
 	fb[2*i+1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
@@ -79,17 +79,18 @@ int fb_write(char * buf, unsigned int len)
 		if (new_position >= max_position)
 		{
 			//Scroll!
+			new_position -= 80;
 			int line = 0;
 			for (line = 0; line < 25; ++line)
 			{
 				memcpy(fb + 160*line, fb + 160*(line + 1), 160);
 			}
-			new_position -= 80;
+			
 		}
 
 		if (!non_printable)
 		{
-			fb_write_cell(position, *(buf+i), 7, 0);
+			fb_write_cell(new_position - 1, *(buf+i), 7, 0);
 		}
 
 		position = new_position;
