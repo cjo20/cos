@@ -11,40 +11,27 @@
 static char * fb = (char *)0x000B8000;
 static unsigned int position = 0;
 static const unsigned int max_position = 25 * 80;
+static unsigned short current_cursor = 0;
+
 
 /** fb_move_cursor:
 *	Moves the cursor of the framebuffer to the given position
 *
 * @param pos The new position of the cursor
 */
-static void fb_move_cursor(unsigned short pos)
+void fb_move_cursor(unsigned short pos)
 {
 	outb(FB_COMMAND_PORT,	FB_HIGH_BYTE_COMMAND);
-	outb(FB_DATA_PORT,		((pos >> 8) & 0x00FF));
+	outb(FB_DATA_PORT,		((pos >> 8) & 0xFF));
 	outb(FB_COMMAND_PORT, 	FB_LOW_BYTE_COMMAND);
-	outb(FB_DATA_PORT, 		pos & 0x00FF);
+	outb(FB_DATA_PORT, 		pos & 0xFF);
+	current_cursor = pos;
 }
 
 void fb_write_cell(unsigned int i, char c, unsigned char fg, unsigned char bg)
 {
 	fb[2*i] = c;
 	fb[2*i+1] = ((bg & 0x0F) << 4) | (fg & 0x0F);
-}
-
-void test()
-{
-	int position = 80*19;
-	int i = 0;
-	for (i = 0; i < 15; ++i)
-	{
-		fb_write_cell(position + i, 'A', i, 0);
-	}
-
-	position = 80*20;
-	for (i = 0; i < 15; ++i)
-	{
-		fb_write_cell(position + i, 'A', 0, i);
-	}	
 }
 
 void fb_clear()
@@ -55,6 +42,7 @@ void fb_clear()
 		fb_write_cell(i, ' ', 0, 0);
 	}
 }
+
 int fb_write(char * buf, unsigned int len)
 {	
 	unsigned int i = 0;
@@ -98,6 +86,35 @@ int fb_write(char * buf, unsigned int len)
 	fb_move_cursor(position);
 	
 	return len;
+}
+
+
+void test()
+{
+	//int position = 80*19;
+	int i = 0;
+	for (i = 0; i < 15; i++)
+	{
+		fb_write_cell(position, 'A', i, 0);
+		fb_write("\n", 1);
+	}
+
+	for (i = 0; i < 15; i++)
+	{
+		fb_write_cell(position,  'A', 0, i);
+		fb_write("\n", 1);
+	}	
+}
+
+
+void fb_backspace()
+{
+	if (position > 0)
+	{
+		position--;
+		fb_write_cell(position, ' ', 7, 0);
+		fb_move_cursor(position + 1);
+	}
 }
 
 int strlen(char * s)

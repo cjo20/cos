@@ -46,6 +46,18 @@ char kbdus[128] =
     0,	/* All other keys are undefined */
 };		
 
+char shift_held = 0;
+
+char shifted[128] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, \
+          /*20 */     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, '1', '2', '~', '4', '5', \
+                      '7', '@', '9', '0', '8', '=', '<', '_', '>', '?', ')', '!', '\"', '#', '$', \
+                      '%', '^', '&', '*', '(', ';', ':', ',', '+', '.', '/', '\'', 'a', 'b', 'c', \
+                      'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', \
+                      't', 'u', 'v', 'w', 'x', 'y', 'z', '{', '|', '}',  '6', '-', ' ', 'A', 'B', 'C', 'D', \
+                      'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', \
+                      'U', 'V', 'W', 'X', 'Y', 'Z', '[', ']', '#', 0};
+
+
 void keyboard_handler(struct cpu_state * r)
 {
     unsigned int scancode;
@@ -55,9 +67,37 @@ void keyboard_handler(struct cpu_state * r)
     if (scancode & 0x80)
     {
 
+      switch (scancode ^ 0x80)
+      {
+        case 42:
+        case 54:
+          shift_held = 0;
+          break;
+      }
     }
     else
     {
-      fb_write(&kbdus[scancode], 1);
+      switch(scancode)
+      {
+        case 42:
+        case 54:
+          shift_held = 1;
+          break;
+        case 14: //backspace
+          fb_backspace();
+          break;
+        default:
+          if (shift_held )
+          {
+            fb_write(&shifted[(int) kbdus[scancode]], 1);
+          }
+          else
+          {
+            fb_write(&kbdus[scancode], 1);
+          }
+          break;
+
+      }
+      
     }
 }

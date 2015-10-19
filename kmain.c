@@ -26,10 +26,9 @@ int kmain()
 	irq_install_handler(0, timer_handler);
 	asm("sti");
 
-	test();
 	fb_clear();
+	test();		
 	fb_write("Chris' basic OS\n", 16);
-		
 	//i /= (i - 0);
 
 //	c[1] = '\n';
