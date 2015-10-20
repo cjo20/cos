@@ -27,7 +27,18 @@ int kmain()
 	asm("sti");
 
 	fb_clear();
-	test();		
+	test();	
+	fb_write("Booted in 5", 11);
+	char c[1];
+
+	for (i = 4 ; i >= 0; --i)
+	{
+		c[0] = (char) (i + 48);
+		timer_wait(18);
+		fb_backspace();
+		fb_write(c, 1);
+	}
+	fb_write("\n", 1);
 	fb_write("Chris' basic OS\n", 16);
 	//i /= (i - 0);
 
