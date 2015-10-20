@@ -4,6 +4,7 @@
 #include "mem.h"
 #include "fb.h"
 #include "io.h"
+#include "lib.h"
 
 extern void isr0();
 extern void isr1();
@@ -153,6 +154,7 @@ void idt_install()
 	idt_set_gate(29, (unsigned long) (unsigned)isr29, 0x8, 0x8E);
 	idt_set_gate(30, (unsigned long) (unsigned)isr30, 0x8, 0x8E);
 	idt_set_gate(31, (unsigned long) (unsigned)isr31, 0x8, 0x8E);	
+
 	load_idt(&idtp);
 }
 
