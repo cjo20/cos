@@ -9,7 +9,7 @@ AS = nasm
 ASFLAGS = -f elf32
 VPATH = src
 
-all: kernel.elf
+all: os.iso
 
 kernel.elf : $(OBJECTS)
 	ld $(LDFLAGS) $(OBJECTS) -o kernel.elf
