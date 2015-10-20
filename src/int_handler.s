@@ -53,7 +53,7 @@ irq_common_stub:
 
 extern interrupt_handler
 common_interrupt_handler:
-	ousha
+	pusha
 	push ds
 	push es
 	push fs
