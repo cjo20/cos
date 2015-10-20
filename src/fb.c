@@ -9,7 +9,7 @@
 #define FB_HIGH_BYTE_COMMAND 	14
 #define FB_LOW_BYTE_COMMAND		15
 
-static char * fb = (char *)0x000B8000;
+static char * fb = (char *)0xC00B8000;
 static unsigned int position = 0;
 static const unsigned int max_position = 25 * 80;
 static unsigned short current_cursor = 0;

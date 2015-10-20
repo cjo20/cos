@@ -11,23 +11,21 @@
 typedef void (*call_module_t)(void);
 
 
-int kmain(unsigned int ebx)
+int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int ebx)
 {
 
 	int i = 0;
-
-	ebx = ebx;
 	gdt_install();	
 	idt_install();	
 	irq_install();
-
+	
 	IRQ_disable(2);
 	IRQ_disable(1);
 
 
 	IRQ_clear_mask(1);
 	IRQ_clear_mask(0);
-
+	
 	irq_install_handler(1, keyboard_handler);
 	irq_install_handler(0, timer_handler);
 	asm("sti");
@@ -51,44 +49,61 @@ int kmain(unsigned int ebx)
 	serial_write("hello, world\n", 13);
 	serial_write("how are you?\n", 13);
 
+	char string[30];
+	itoa(phy_start, string, 16);
+	fb_writeString("Physical address start: ");
+	fb_writeString(string);
+	itoa(phy_end, string, 16);
+	fb_writeString("\nPhysical address end: ");
+	fb_writeString(string);	
+	itoa(virt_start, string, 16);
+	fb_writeString("\nVirtual address start: ");
+	fb_writeString(string);
+	itoa(virt_end, string, 16);
+	fb_writeString("\nVirtual address end: ");
+	fb_writeString(string);
+	fb_writeString("\n");	
+
 #if 1
-	multiboot_info_t * mbinfo = (multiboot_info_t *) ebx;
+	multiboot_info_t * mbinfo = (multiboot_info_t *) (ebx + 0xC0000000);
 
 	if(mbinfo->flags & 0x8)
 	{
 		char str[30];
 		unsigned int j;
-		fb_writeString("Modules struct is Valid\n");
+		fb_writeString("Modules struct is valid\n");
 
 		itoa(mbinfo->mods_count, str, 10);
 		fb_writeString(str);
 		fb_writeString(" modules loaded.\n");
 
 		multiboot_module_t * mod;
-		mod = (multiboot_module_t *) mbinfo->mods_addr;
+		mod = (multiboot_module_t *) (mbinfo->mods_addr + 0xC0000000);
 
 		for (j = 0; j < mbinfo->mods_count; j++, mod++)
 		{
+			mod->mod_start += 0xC0000000;
+			mod->mod_end += 0xC0000000;
+			mod->string += 0xC0000000;
 			fb_writeString("Module start: ");
-			itoa(mod->mod_start, str, 16);
+			utoa(mod->mod_start, str, 16);
 			fb_writeString(str);
 
 			fb_writeString("\nModule end: ");
-			itoa(mod->mod_end, str, 16);
+			utoa(mod->mod_end, str, 16);
 			fb_writeString(str);			
 
 			fb_writeString("\nModule cmd: ");
-			fb_writeString((char *)mod->string);
+			fb_writeString((char *)(mod->string));
 			fb_writeString("\nCalling module\n");
 
-			call_module_t start_program = (call_module_t) mod->mod_start;
-			asm("xchg %bx,%bx");
+			call_module_t start_program = (call_module_t) (mod->mod_start);
 			start_program();			
 		}
 	}
 	else
 	{
-		fb_write("Flags not valid\n", 15);
+		fb_writeString("Modules not valid\n");
 	}	
 	#endif
 
