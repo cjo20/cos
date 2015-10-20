@@ -1,9 +1,13 @@
-OBJECTS = asm_func.o mem.o io.o interrupt.o int_handler.o pic.o gdt.o serial.o fb.o timer.o keyboard.o kmain.o loader.o  
+
+BUILDDIR = bin
+OBJECTS = $(BUILDDIR)/asm_func.o $(BUILDDIR)/mem.o $(BUILDDIR)/io.o $(BUILDDIR)/interrupt.o $(BUILDDIR)/int_handler.o $(BUILDDIR)/pic.o $(BUILDDIR)/gdt.o $(BUILDDIR)/serial.o $(BUILDDIR)/fb.o $(BUILDDIR)/timer.o $(BUILDDIR)/keyboard.o $(BUILDDIR)/kmain.o $(BUILDDIR)/loader.o  
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -x c -c
+INC_DIR = headers
+CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -I$(INC_DIR) -Wall -Wextra -Werror -x c -c
 LDFLAGS  = -T link.ld -melf_i386
 AS = nasm
 ASFLAGS = -f elf32
+VPATH = src
 
 all: kernel.elf
 
@@ -26,11 +30,11 @@ os.iso: kernel.elf
 run : os.iso
 	bochs -f bochsrc.txt -q
 
-%.o: %.c
+$(BUILDDIR)/%.o: src/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
-%.o: %.s
+$(BUILDDIR)/%.o: src/%.s
 	$(AS) $(ASFLAGS) $< -o $@
 
 clean:
-	rm -rf *.o kernel.elf os.iso
+	rm -rf bin/*.o kernel.elf os.iso
