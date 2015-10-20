@@ -8,6 +8,8 @@
 
 #include "multiboot.h"
 #include "lib.h"
+
+#define BUILDSTR __DATE__  " "  __TIME__  "\n"
 typedef void (*call_module_t)(void);
 
 
@@ -25,14 +27,20 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	IRQ_clear_mask(1);
 	IRQ_clear_mask(0);
-	
+	IRQ_clear_mask(7);
+	IRQ_clear_mask(15);
+
 	irq_install_handler(1, keyboard_handler);
 	irq_install_handler(0, timer_handler);
+	irq_install_handler(7, irq_spurious_handler);
+	irq_install_handler(15, irq_spurious_handler);
+	pic_acknowledge(0);
+	pic_acknowledge(10);
 	asm("sti");
 
 	fb_clear();
 	test();	
-	fb_writeString("Booted in 5");
+/*	fb_writeString("Booted in 5");
 	char c[1];
 
 	for (i = 4 ; i >= 0; --i)
@@ -42,13 +50,16 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 		fb_backspace();
 		fb_write(c, 1);
 	}
-	fb_writeString("\n");
-	fb_writeString("Chris' basic OS\n");
+
 
 	serial_set_up();
 	serial_write("hello, world\n", 13);
 	serial_write("how are you?\n", 13);
+*/
 
+	fb_writeString("\n");
+	fb_writeString("Chris' basic OS\n");
+	fb_writeString(BUILDSTR);
 	char string[30];
 	itoa(phy_start, string, 16);
 	fb_writeString("Physical address start: ");
