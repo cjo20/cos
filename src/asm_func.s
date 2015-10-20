@@ -24,5 +24,19 @@ flush2:
 global io_wait
 
 io_wait:
+	out 0x80, al
 	ret
 
+global get_cpuid
+get_cpuid:
+	mov eax, [esp + 4]
+	cpuid
+	mov edi, [esp + 8]
+	mov [edi], eax
+	add edi, 4
+	mov [edi], ebx
+	add edi, 4
+	mov [edi], ecx
+	add edi, 4
+	mov [edi], edx
+	ret

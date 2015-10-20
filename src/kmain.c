@@ -5,17 +5,18 @@
 #include "pic.h"
 #include "keyboard.h"
 #include "timer.h"
-
+#include "asm_func.h"
 #include "multiboot.h"
 #include "lib.h"
-
+#include "cpuinfo.h"
 #define BUILDSTR __DATE__  " "  __TIME__  "\n"
 typedef void (*call_module_t)(void);
 
 
+
 int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int ebx)
 {
-
+	char string[32];
 	int i = 0;
 	gdt_install();	
 	idt_install();	
@@ -56,11 +57,27 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	serial_write("hello, world\n", 13);
 	serial_write("how are you?\n", 13);
 */
+	int cpu_id[4];
+
+	get_cpuid(0, cpu_id);
+	print_vendor_string(cpu_id);
+
+	get_cpuid(1, cpu_id);
+	parse_cpuid_features(cpu_id);
 
 	fb_writeString("\n");
+	utoa(cpu_id[2], string, 16);
+	fb_writeString(string);
+	fb_writeString(":");
+	utoa(cpu_id[3], string, 16);
+	fb_writeString(string);
+
+#if 0
 	fb_writeString("Chris' basic OS\n");
 	fb_writeString(BUILDSTR);
-	char string[30];
+
+
+	
 	itoa(phy_start, string, 16);
 	fb_writeString("Physical address start: ");
 	fb_writeString(string);
@@ -75,7 +92,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	fb_writeString(string);
 	fb_writeString("\n");	
 
-#if 1
+
 	multiboot_info_t * mbinfo = (multiboot_info_t *) (ebx + 0xC0000000);
 
 	if(mbinfo->flags & 0x8)
@@ -116,7 +133,13 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	{
 		fb_writeString("Modules not valid\n");
 	}	
-	#endif
+#else
+	ebx = ebx;
+	virt_start = virt_start;
+	virt_end = virt_end;
+	phy_start = phy_start;
+	phy_end = phy_end;
+#endif
 
 	while(i)
 	{
