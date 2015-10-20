@@ -17,6 +17,7 @@ _start:
 	cli
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
 	;xchg bx, bx
+	push ebx
  	call kmain	
 .loop:
 	jmp .loop
