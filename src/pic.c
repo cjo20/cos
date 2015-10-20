@@ -2,6 +2,9 @@
 #include "io.h"
 #include "interrupt.h"
 #include "fb.h"
+#include "lib.h"
+
+
 #define PIC1			0x20
 #define PIC2 			0xA0
 #define PIC1_COMMAND	PIC1
@@ -62,8 +65,8 @@ void pic_remap(char offset1, char offset2)
 	outb(PIC2_COMMAND, ICW1_INIT + ICW1_ICW4);
 	outb(PIC1_DATA, offset1);
 	outb(PIC2_DATA, offset2);
-	outb(PIC1_DATA, 0x0);
-	outb(PIC2_DATA, 0x0);
+	outb(PIC1_DATA, 0x2);
+	outb(PIC2_DATA, 0x4);
 
 	outb(PIC1_DATA, ICW4_8086);
 	outb(PIC2_DATA, ICW4_8086);
@@ -197,22 +200,23 @@ void irq_install()
 {
 	pic_remap(0x20, 0x28);
 
-	idt_set_gate(32, (unsigned)irq0, 0x08, 0x8E);
-	idt_set_gate(33, (unsigned)irq1, 0x08, 0x8E);
-	idt_set_gate(34, (unsigned)irq2, 0x08, 0x8E);
-	idt_set_gate(35, (unsigned)irq3, 0x08, 0x8E);
-	idt_set_gate(36, (unsigned)irq4, 0x08, 0x8E);
-	idt_set_gate(37, (unsigned)irq5, 0x08, 0x8E);
-	idt_set_gate(38, (unsigned)irq6, 0x08, 0x8E);
-	idt_set_gate(39, (unsigned)irq7, 0x08, 0x8E);
-	idt_set_gate(40, (unsigned)irq8, 0x08, 0x8E);
-	idt_set_gate(41, (unsigned)irq9, 0x08, 0x8E);
-	idt_set_gate(42, (unsigned)irq10, 0x08, 0x8E);
-	idt_set_gate(43, (unsigned)irq11, 0x08, 0x8E);
-	idt_set_gate(44, (unsigned)irq12, 0x08, 0x8E);
-	idt_set_gate(45, (unsigned)irq13, 0x08, 0x8E);
-	idt_set_gate(46, (unsigned)irq14, 0x08, 0x8E);
-	idt_set_gate(47, (unsigned)irq15, 0x08, 0x8E);
+	idt_set_gate(0x20, (unsigned)irq0, 0x08, 0x8E);
+	idt_set_gate(0x21, (unsigned)irq1, 0x08, 0x8E);
+	idt_set_gate(0x22, (unsigned)irq2, 0x08, 0x8E);
+	idt_set_gate(0x23, (unsigned)irq3, 0x08, 0x8E);
+	idt_set_gate(0x24, (unsigned)irq4, 0x08, 0x8E);
+	idt_set_gate(0x25, (unsigned)irq5, 0x08, 0x8E);
+	idt_set_gate(0x26, (unsigned)irq6, 0x08, 0x8E);
+	idt_set_gate(0x27, (unsigned)irq7, 0x08, 0x8E);
+
+	idt_set_gate(0x28, (unsigned)irq8, 0x08, 0x8E);
+	idt_set_gate(0x29, (unsigned)irq9, 0x08, 0x8E);
+	idt_set_gate(0x2A, (unsigned)irq10, 0x08, 0x8E);
+	idt_set_gate(0x2B, (unsigned)irq11, 0x08, 0x8E);
+	idt_set_gate(0x2C, (unsigned)irq12, 0x08, 0x8E);
+	idt_set_gate(0x2D, (unsigned)irq13, 0x08, 0x8E);
+	idt_set_gate(0x2E, (unsigned)irq14, 0x08, 0x8E);
+	idt_set_gate(0x2F, (unsigned)irq15, 0x08, 0x8E);
 }
 
 void irq_handler(struct cpu_state *r)
@@ -224,6 +228,35 @@ void irq_handler(struct cpu_state *r)
 	{
 		handler(r);
 	}
-
+	else
+	{
+		char str[30];
+		fb_writeString("IRQ not handled: ");	
+		utoa(r->int_no, str, 10);
+		fb_writeString(str);
+		fb_writeString("\n");
+	}
+	
 	pic_acknowledge(r->int_no);
+}
+
+void irq_spurious_handler(struct cpu_state * r)
+{
+	unsigned short isr = pic_get_isr();
+
+	if (isr & (1 << r->int_no))
+	{
+		fb_writeString("SPR IRQ");
+		char int_no[7];
+		utoa(r->int_no, int_no, 10);
+		fb_writeString(int_no);
+		fb_writeString("\n");
+	}
+	else
+	{
+		if (r->int_no > 0x7)
+		{
+			outb(PIC1, PIC_ACK);
+		}
+	}
 }
