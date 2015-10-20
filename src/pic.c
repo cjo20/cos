@@ -62,17 +62,27 @@ void pic_remap(char offset1, char offset2)
 	a2 = inb(PIC2_DATA);
 
 	outb(PIC1_COMMAND, ICW1_INIT + ICW1_ICW4);
+	io_wait();
 	outb(PIC2_COMMAND, ICW1_INIT + ICW1_ICW4);
+	io_wait();
 	outb(PIC1_DATA, offset1);
+	io_wait();
 	outb(PIC2_DATA, offset2);
+	io_wait();
 	outb(PIC1_DATA, 0x2);
+	io_wait();
 	outb(PIC2_DATA, 0x4);
+	io_wait();
 
 	outb(PIC1_DATA, ICW4_8086);
+	io_wait();
 	outb(PIC2_DATA, ICW4_8086);
+	io_wait();
 
 	outb(PIC1_DATA, a1);
+	io_wait();
 	outb(PIC2_DATA, a2);
+	io_wait();
 }
 
 
