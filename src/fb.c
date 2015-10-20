@@ -1,5 +1,6 @@
 #include "io.h"
 #include "mem.h"
+#include "lib.h"
 /* The I/O ports */
 #define FB_COMMAND_PORT		0x3D4
 #define FB_DATA_PORT		0x3D5
@@ -61,6 +62,7 @@ int fb_write(char * buf, unsigned int len)
 		}
 		else
 		{
+			non_printable = 0;
 			new_position += 1;
 		}
 
@@ -117,15 +119,8 @@ void fb_backspace()
 	}
 }
 
-int strlen(char * s)
+
+int fb_writeString(char * buf)
 {
-	int i = 0;
-
-	while(*s != 0)
-	{
-		i++;
-		s++;
-	}
-
-	return i;
+	return fb_write(buf, strlen(buf));
 }
