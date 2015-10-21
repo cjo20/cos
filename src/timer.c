@@ -55,7 +55,7 @@ void timer_handler(struct cpu_state * r)
 	{
 		if (even)
 		{
-			fb_write_cell(79, '#', 7, 0);
+			fb_write_cell(79, 3, 7, 0);
 		}
 		else
 		{

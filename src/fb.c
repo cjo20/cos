@@ -90,25 +90,6 @@ int fb_write(char * buf, unsigned int len)
 	return len;
 }
 
-
-void test()
-{
-	//int position = 80*19;
-	int i = 0;
-	for (i = 0; i < 15; i++)
-	{
-		fb_write_cell(position, 'A', i, 0);
-		fb_write("\n", 1);
-	}
-
-	for (i = 0; i < 15; i++)
-	{
-		fb_write_cell(position,  'A', 0, i);
-		fb_write("\n", 1);
-	}	
-}
-
-
 void fb_backspace()
 {
 	if (position > 0)
@@ -123,4 +104,28 @@ void fb_backspace()
 int fb_writeString(char * buf)
 {
 	return fb_write(buf, strlen(buf));
+}
+
+void test()
+{
+	//int position = 80*19;
+	int i = 0;
+	fb_writeString("Colour test:");
+	for (i = 0; i < 15; i++)
+	{
+		fb_write_cell(position++, 'A', i, 0);
+	}
+
+	for (i = 0; i < 15; i++)
+	{
+		fb_write_cell(position++,  'A', 0, i);
+	}	
+
+	fb_writeString("\nCharacter test:");
+	unsigned char c = 0;
+	for (c = 0; c < 255; c++)
+	{
+		fb_write((char *) &c, 1);
+	}
+	fb_writeString("\n");
 }

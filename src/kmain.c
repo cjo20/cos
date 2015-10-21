@@ -38,7 +38,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	fb_clear();
 	test();	
-/*	fb_writeString("Booted in 5");
+	fb_writeString("Timer Test:5");
 	char c[1];
 
 	for (i = 4 ; i >= 0; --i)
@@ -48,12 +48,12 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 		fb_backspace();
 		fb_write(c, 1);
 	}
-
+	fb_writeString("\n");
 
 	serial_set_up();
 	serial_write("hello, world\n", 13);
 	serial_write("how are you?\n", 13);
-*/
+
 	int cpu_id[4];
 
 	get_cpuid(0, cpu_id);
@@ -71,7 +71,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	fb_writeString("\n");
 //	asm("int $0x20");
 
-	fb_writeString("Chris' basic OS\n");
+	fb_writeString("Chris' basic OS. Built: ");
 	fb_writeString(BUILDSTR);
 #if 0
 

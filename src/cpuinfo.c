@@ -110,16 +110,16 @@ void print_supported_features(int num_features, char * string[32], int field)
 		fb_writeString(": ");
 		if ((1 << i) & field)
 		{
-			fb_writeString("YES");
+			fb_writeString("Y");
 		}
 		else
 		{
-			fb_writeString("NO ");
+			fb_writeString("N");
 		}
 
-		if ((i+1) % 4)
+		if ((i+1) % 6)
 		{
-			fb_writeString("    ");
+			fb_writeString("   ");
 		}
 		else
 		{
