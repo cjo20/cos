@@ -28,14 +28,11 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	IRQ_clear_mask(1);
 	IRQ_clear_mask(0);
-	IRQ_clear_mask(7);
-	IRQ_clear_mask(15);
 
 	irq_install_handler(1, keyboard_handler);
 	irq_install_handler(0, timer_handler);
 	irq_install_handler(7, irq_spurious_handler);
 	irq_install_handler(15, irq_spurious_handler);
-	pic_acknowledge(0);
 	pic_acknowledge(10);
 	asm("sti");
 
@@ -71,11 +68,12 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	fb_writeString(":");
 	utoa(cpu_id[3], string, 16);
 	fb_writeString(string);
+	fb_writeString("\n");
+//	asm("int $0x20");
 
-#if 0
 	fb_writeString("Chris' basic OS\n");
 	fb_writeString(BUILDSTR);
-
+#if 0
 
 	
 	itoa(phy_start, string, 16);
