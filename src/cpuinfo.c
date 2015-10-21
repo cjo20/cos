@@ -106,24 +106,15 @@ void print_supported_features(int num_features, char * string[32], int field)
 	int i = 0;
 	for (i = 0; i < num_features; ++i)
 	{
-		fb_writeString(string[i]);
-		fb_writeString(": ");
-		if ((1 << i) & field)
-		{
-			fb_writeString("Y");
-		}
-		else
-		{
-			fb_writeString("N");
-		}
+		printf("%s: %c", string[i], ((1 << i) & field) ? 'Y' : 'N');
 
 		if ((i+1) % 6)
 		{
-			fb_writeString("   ");
+			printf("   ");
 		}
 		else
 		{
-			fb_writeString("\n");
+			printf("\n");
 		}
 	}
 }
@@ -131,7 +122,7 @@ void print_supported_features(int num_features, char * string[32], int field)
 void parse_cpuid_features(int cpu_id[4])
 {
 	print_supported_features(NUM_ECX_FEATURES, ecx_features, cpu_id[2]);
-	fb_writeString("\n");
+	printf("\n");
 	print_supported_features(NUM_EDX_FEATURES, edx_features, cpu_id[3]);
 
 }

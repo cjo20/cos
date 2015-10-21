@@ -16,7 +16,7 @@ typedef void (*call_module_t)(void);
 
 int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int ebx)
 {
-	char string[32];
+	//char string[32];
 	int i = 0;
 	gdt_install();	
 	idt_install();	
@@ -38,7 +38,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	fb_clear();
 	test();	
-	fb_writeString("Timer Test:5");
+	printf("Timer Test:5");
 	char c[1];
 
 	for (i = 4 ; i >= 0; --i)
@@ -48,7 +48,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 		fb_backspace();
 		fb_write(c, 1);
 	}
-	fb_writeString("\n");
+	printf("\n");
 
 	serial_set_up();
 	serial_write("hello, world\n", 13);
@@ -62,17 +62,12 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	get_cpuid(1, cpu_id);
 	parse_cpuid_features(cpu_id);
 
-	fb_writeString("\n");
-	utoa(cpu_id[2], string, 16);
-	fb_writeString(string);
-	fb_writeString(":");
-	utoa(cpu_id[3], string, 16);
-	fb_writeString(string);
-	fb_writeString("\n");
+	printf("\n%x:%x\n", cpu_id[2], cpu_id[3]);
+
 //	asm("int $0x20");
 
-	fb_writeString("Chris' basic OS. Built: ");
-	fb_writeString(BUILDSTR);
+	printf("Chris' basic OS. Built: %s", BUILDSTR);
+	
 #if 0
 
 	
@@ -89,19 +84,22 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	fb_writeString("\nVirtual address end: ");
 	fb_writeString(string);
 	fb_writeString("\n");	
+#else
+	virt_start = virt_start;
+	virt_end = virt_end;
+	phy_start = phy_start;
+	phy_end = phy_end;
+#endif
 
+#if 1
 
 	multiboot_info_t * mbinfo = (multiboot_info_t *) (ebx + 0xC0000000);
 
 	if(mbinfo->flags & 0x8)
 	{
-		char str[30];
 		unsigned int j;
-		fb_writeString("Modules struct is valid\n");
-
-		itoa(mbinfo->mods_count, str, 10);
-		fb_writeString(str);
-		fb_writeString(" modules loaded.\n");
+		printf("Modules struct is valid\n");
+		printf("%d modules loaded.\n", mbinfo->mods_count);
 
 		multiboot_module_t * mod;
 		mod = (multiboot_module_t *) (mbinfo->mods_addr + 0xC0000000);
@@ -111,17 +109,10 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 			mod->mod_start += 0xC0000000;
 			mod->mod_end += 0xC0000000;
 			mod->string += 0xC0000000;
-			fb_writeString("Module start: ");
-			utoa(mod->mod_start, str, 16);
-			fb_writeString(str);
-
-			fb_writeString("\nModule end: ");
-			utoa(mod->mod_end, str, 16);
-			fb_writeString(str);			
-
-			fb_writeString("\nModule cmd: ");
-			fb_writeString((char *)(mod->string));
-			fb_writeString("\nCalling module\n");
+			printf("Module start:\t%x\n", mod->mod_start);
+			printf("Module end:\t\t%x\n", mod->mod_end);
+			printf("Module cmd:\t\t%s\n", (char *)(mod->string));
+			printf("Calling module\n");
 
 			call_module_t start_program = (call_module_t) (mod->mod_start);
 			start_program();			
@@ -129,14 +120,11 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	}
 	else
 	{
-		fb_writeString("Modules not valid\n");
+		printf("Modules not valid\n");
 	}	
 #else
 	ebx = ebx;
-	virt_start = virt_start;
-	virt_end = virt_end;
-	phy_start = phy_start;
-	phy_end = phy_end;
+
 #endif
 
 	while(i)
