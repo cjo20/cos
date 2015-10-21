@@ -115,7 +115,7 @@ void fb_backspace()
 	{
 		position--;
 		fb_write_cell(position, ' ', 7, 0);
-		fb_move_cursor(position + 1);
+		fb_move_cursor(position);
 	}
 }
 
