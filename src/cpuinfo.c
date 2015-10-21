@@ -34,7 +34,7 @@ void print_vendor_string(int string[4])
 
 
 char * ecx_features[32] = { 
-							"SSE3",
+							"SSE3   ",
 							"PCLMUL ",
 							"DTES64 ",
 							"MONITOR",
@@ -117,7 +117,7 @@ void print_supported_features(int num_features, char * string[32], int field)
 			fb_writeString("NO ");
 		}
 
-		if ((i+2) % 3)
+		if ((i+1) % 4)
 		{
 			fb_writeString("    ");
 		}
@@ -131,6 +131,7 @@ void print_supported_features(int num_features, char * string[32], int field)
 void parse_cpuid_features(int cpu_id[4])
 {
 	print_supported_features(NUM_ECX_FEATURES, ecx_features, cpu_id[2]);
+	fb_writeString("\n");
 	print_supported_features(NUM_EDX_FEATURES, edx_features, cpu_id[3]);
 
 }
