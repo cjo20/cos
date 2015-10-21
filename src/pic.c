@@ -231,16 +231,21 @@ void irq_install()
 
 void irq_handler(struct cpu_state *r)
 {
+	char str[30];
 	void (*handler)(struct cpu_state * r);
 	handler = irq_routines[r->int_no];
 
 	if (handler)
 	{
+		//fb_writeString("IRQ handled: ");	
+		//utoa(r->int_no, str, 10);
+		//fb_writeString(str);
+		//fb_writeString("\n");
 		handler(r);
 	}
 	else
 	{
-		char str[30];
+		
 		fb_writeString("IRQ not handled: ");	
 		utoa(r->int_no, str, 10);
 		fb_writeString(str);
@@ -254,17 +259,14 @@ void irq_spurious_handler(struct cpu_state * r)
 {
 	unsigned short isr = pic_get_isr();
 
-	if (isr & (1 << r->int_no))
+	if (!(isr & (1 << r->int_no)))
 	{
-		fb_writeString("SPR IRQ");
-		char int_no[7];
-		utoa(r->int_no, int_no, 10);
-		fb_writeString(int_no);
-		fb_writeString("\n");
-	}
-	else
-	{
-		if (r->int_no > 0x7)
+		//fb_writeString("SPR IRQ");
+		//char int_no[7];
+		//utoa(r->int_no, int_no, 10);
+		//fb_writeString(int_no);
+		//fb_writeString("\n");
+		if (r->int_no == 15)
 		{
 			outb(PIC1, PIC_ACK);
 		}
