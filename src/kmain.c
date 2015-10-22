@@ -66,11 +66,13 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	get_cpuid(0, cpu_id);
 	print_vendor_string(cpu_id);
+	printf("%x:%x\n", cpu_id[2], cpu_id[3]);
+	
 #if 0
 	get_cpuid(1, cpu_id);
 	parse_cpuid_features(cpu_id);
 #endif
-	printf("%x:%x\n", cpu_id[2], cpu_id[3]);
+	
 
 	
 	printf("Kernel Physical memory from %#x -> %#x\n", phy_start, phy_end);
