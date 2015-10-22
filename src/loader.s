@@ -2,6 +2,12 @@ global _start
 global loader
 extern kmain
 
+
+extern kernel_virtual_start;
+extern kernel_virtual_end;
+extern kernel_physical_start;
+extern kernel_physical_end;
+
 MAGIC_NUMBER 	equ 0x1BADB002
 MEMALIGN		equ 1<<1
 MEMINFO			equ 1<<1
@@ -67,10 +73,10 @@ StartInHigherHalf:
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
 	;xchg bx, bx
 	push ebx
-	push 3
-	push 2
-	push 1
-	push 0
+	push kernel_physical_end
+	push kernel_physical_start
+	push kernel_virtual_end
+	push kernel_virtual_start
  	call kmain	
 .loop:
 	jmp .loop

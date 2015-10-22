@@ -27,6 +27,10 @@ io_wait:
 	out 0x80, al
 	ret
 
+; get_cpuid
+; stack: 	[esp + 8] Pointer to int[4]
+;			[esp + 4] Argument to cpuid (0 or 1)
+;			[esp	] Return Address
 global get_cpuid
 get_cpuid:
 	mov eax, [esp + 4]
@@ -39,4 +43,15 @@ get_cpuid:
 	mov [edi], ecx
 	add edi, 4
 	mov [edi], edx
+	ret
+
+; get_low_memory
+; stack: 	[esp + 4] pointer to int
+;			[esp	] return address
+global get_low_memory
+get_low_memory:
+	clc
+	xchg bx, bx
+	int 0x12
+	mov [esp + 4], eax
 	ret

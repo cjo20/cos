@@ -9,6 +9,10 @@
 #include "multiboot.h"
 #include "lib.h"
 #include "cpuinfo.h"
+#include "mmngr_phys.h"
+
+
+
 #define BUILDSTR __DATE__  " "  __TIME__  "\n"
 typedef void (*call_module_t)(void);
 
@@ -18,13 +22,17 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 {
 	//char string[32];
 	int i = 0;
-	gdt_install();	
+	uint32_t mem_size = 0;
+	uint32_t modules_end = phy_end;
+	multiboot_info_t * mbinfo;
+
+
+	gdt_install();
 	idt_install();	
 	irq_install();
 	
 	IRQ_disable(2);
 	IRQ_disable(1);
-
 
 	IRQ_clear_mask(1);
 	IRQ_clear_mask(0);
@@ -58,44 +66,20 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	get_cpuid(0, cpu_id);
 	print_vendor_string(cpu_id);
-
+#if 0
 	get_cpuid(1, cpu_id);
 	parse_cpuid_features(cpu_id);
-
-	printf("\n%x:%x\n", cpu_id[2], cpu_id[3]);
-
-//	asm("int $0x20");
-
-	printf("Chris' basic OS. Built: %s", BUILDSTR);
-	
-#if 0
-
-	
-	itoa(phy_start, string, 16);
-	fb_writeString("Physical address start: ");
-	fb_writeString(string);
-	itoa(phy_end, string, 16);
-	fb_writeString("\nPhysical address end: ");
-	fb_writeString(string);	
-	itoa(virt_start, string, 16);
-	fb_writeString("\nVirtual address start: ");
-	fb_writeString(string);
-	itoa(virt_end, string, 16);
-	fb_writeString("\nVirtual address end: ");
-	fb_writeString(string);
-	fb_writeString("\n");	
-#else
-	virt_start = virt_start;
-	virt_end = virt_end;
-	phy_start = phy_start;
-	phy_end = phy_end;
 #endif
+	printf("%x:%x\n", cpu_id[2], cpu_id[3]);
+
+	
+	printf("Kernel Physical memory from %#x -> %#x\n", phy_start, phy_end);
+	printf("Kernel Virtual memory from %#x -> %#x\n", virt_start, virt_end);
+
+	mbinfo = (multiboot_info_t *) (ebx + 0xC0000000);
 
 #if 1
-
-	multiboot_info_t * mbinfo = (multiboot_info_t *) (ebx + 0xC0000000);
-
-	if(mbinfo->flags & 0x8)
+	if (mbinfo->flags & MULTIBOOT_FLAGS_MODS)
 	{
 		unsigned int j;
 		printf("Modules struct is valid\n");
@@ -109,13 +93,16 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 			mod->mod_start += 0xC0000000;
 			mod->mod_end += 0xC0000000;
 			mod->string += 0xC0000000;
-			printf("Module start:\t%x\n", mod->mod_start);
-			printf("Module end:\t\t%x\n", mod->mod_end);
+			printf("Module start:\t%#x\n", mod->mod_start);
+			printf("Module end:\t\t%#x\n", mod->mod_end);
 			printf("Module cmd:\t\t%s\n", (char *)(mod->string));
-			printf("Calling module\n");
-
-			call_module_t start_program = (call_module_t) (mod->mod_start);
-			start_program();			
+			//printf("Calling module\n");
+			if (mod->mod_end > modules_end)
+			{
+				modules_end = mod->mod_end;
+			}
+			//call_module_t start_program = (call_module_t) (mod->mod_start);
+			//start_program();			
 		}
 	}
 	else
@@ -125,7 +112,65 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 #else
 	ebx = ebx;
 
-#endif
+#endif	
+
+
+
+	if (mbinfo->flags & MULTIBOOT_FLAGS_MEMINFO)
+	{
+		//printf("Found %d kB lower memory, %d kB upper memory\n", mbinfo->mem_lower, mbinfo->mem_upper);
+		//printf("Found %d kB total memory\n", mbinfo->mem_upper + mbinfo->mem_lower);
+
+		mem_size = mbinfo->mem_upper + mbinfo->mem_lower + 1024;
+	}
+	else
+	{
+		printf("Need meminfo from multboot to set up memory management. Not found.\n");
+		asm("hlt");
+	}
+
+	pmmngr_init(mem_size, (uint32_t *) modules_end);
+	printf("Initialised memory manager to handle %d kB\n", mem_size);
+
+	if (mbinfo->flags & MULTIBOOT_FLAGS_MMAP)
+	{
+		multiboot_memory_map_t * mmap = 0;
+		multiboot_memory_map_t * mmap_end = 0;
+		
+		mbinfo->mmap_addr += 0xC0000000;
+
+		mmap = (multiboot_memory_map_t *) mbinfo->mmap_addr;
+		mmap_end = (multiboot_memory_map_t *) (mbinfo->mmap_addr + mbinfo->mmap_length);
+
+
+		while (mmap < mmap_end)
+		{
+			printf("Mem Base Address: %#08x%08x ", mmap->base_addr_high, mmap->base_addr_low);
+			printf("Length: %x%09x ", mmap->length_high, mmap->length_low);
+			printf("type: %d ", mmap->type);
+			printf("%s\n", mmap->type == 1 ? "(RAM)":"(RESERVED)" );
+
+			if (mmap->type == 1)
+			{
+				pmmngr_init_region(mmap->base_addr_low, mmap->length_low);
+			}
+
+			mmap = (multiboot_memory_map_t*) ((unsigned int) mmap + mmap->size + sizeof(unsigned int));
+		}
+	}
+
+	pmmngr_deinit_region(phy_start, 0x400000);
+
+	uint32_t * p = (uint32_t *) pmmngr_alloc_block();
+	printf("p allocated at %d\n", p);
+	pmmngr_free_block(p);
+	p = (uint32_t *) pmmngr_alloc_block();
+	printf("Deallocated p to free block 1. p is reallocated to %d\n", p);
+	pmmngr_free_block(p);
+
+	printf("Chris' basic OS. Built: %s", BUILDSTR);
+
+
 
 	while(i)
 	{

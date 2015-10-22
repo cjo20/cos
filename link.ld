@@ -4,7 +4,8 @@ ENTRY(loader)
 SECTIONS {
 	
 . = 0xC0100000;
-
+	kernel_virtual_start = .;
+	kernel_physical_start = . - 0xC0000000;
 
 	.__mbHeader : AT(ADDR(.__mbHeader) - 0xC0000000)
 	{
@@ -31,5 +32,8 @@ SECTIONS {
 		*(COMMON)
 		*(.bss)
 	}
+
+	kernel_virtual_end = .;
+	kernel_physical_end = . - 0xC0000000;	
 }
 

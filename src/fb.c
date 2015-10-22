@@ -183,6 +183,11 @@ void printf(char * format, ...)
 	char buf[33];
 	int i;
 
+	char prefix = 0;
+	char prefix_char = 'x';
+	char zerofill = 0;
+	int  min_width = 0;
+
 	while((ch = *(format++)))
 	{
 		p = 0;
@@ -195,6 +200,24 @@ void printf(char * format, ...)
 	    {
 	        ch = *(format++);
 
+	        if (ch == '#')
+	        {
+	        	prefix = 1;
+	        	ch = *(format++);
+	        }
+
+	        if (ch == '0')
+	        {
+	        	zerofill = 1;
+	        	ch = *(format++);
+	        }
+
+	        if (ch >= '0' && ch <= '9')
+	        {
+	        	min_width = ch - '0';
+	        	ch = *(format++);
+	        }
+	        
 	        switch(ch)
 	        {
 	            case 'd':
@@ -206,9 +229,13 @@ void printf(char * format, ...)
 
 	            case 'x':
 	               	i = (int) va_arg(args, int);
-	               	buf[0] = '0';
-	               	buf[1] = 'x';
-	            	utoa(i, buf + 2, 16);
+	               	if (prefix)
+	               	{
+	               		prefix_char = 'x';
+	               	}
+	            	
+	            	utoa(i, buf, 16);
+
 	            	p = buf;
 	                break;
 
@@ -224,9 +251,50 @@ void printf(char * format, ...)
 	        }
 	    }
 
+
+
+
 	    if(p)
 	    {
+	    	int output_length = strlen(p);
+	    	int pad_length = min_width - output_length;
+
+	    	if (pad_length > 0)
+	    	{
+	    		int pad_length = min_width - output_length;
+	    		char pad_char = zerofill? '0' : ' ';
+
+	    		if (zerofill && prefix)
+	    		{
+					fb_putch('0');
+	    			fb_putch(prefix_char);
+	    		}
+
+	    		while (pad_length)
+	    		{
+	    			fb_putch(pad_char);
+	    			pad_length--;
+	    		}
+
+	    		if (!zerofill && prefix)
+	    		{
+					fb_putch('0');
+	    			fb_putch(prefix_char);
+	    		}
+	    	}
+	    	else
+	    	{
+	    		if (prefix)
+	    		{
+	    			fb_putch('0');
+	    			fb_putch(prefix_char);
+	    		}
+	    	}
 	    	fb_writeString(p);
 	    }
+		
+		prefix = 0; 
+	    zerofill = 0;
+	    min_width = 0;
 	}
 }
