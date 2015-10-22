@@ -1,4 +1,4 @@
-megs:            32
+megs:            2048
 display_library: x
 romimage:        file=/usr/share/bochs/BIOS-bochs-latest
 vgaromimage:     file=/usr/share/bochs/VGABIOS-lgpl-latest
@@ -6,7 +6,7 @@ ata0-master:     type=cdrom, path=os.iso, status=inserted
 boot:            cdrom
 log:             bochslog.txt
 clock:           sync=realtime, time0=local
-cpu:             count=1, ips=1000000
+cpu:             model=corei7_ivy_bridge_3770k, count=1, ips=1000000
 magic_break:	 enabled=1
 com1:			 enabled=1, mode=file, dev=com1.out
-keyboard: keymap=/usr/share/bochs/keymaps/x11-pc-uk.map
+keyboard: 		 keymap=/usr/share/bochs/keymaps/x11-pc-uk.map

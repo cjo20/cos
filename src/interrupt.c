@@ -78,13 +78,11 @@ char * exception_messages[] =
 
 void interrupt_handler(struct cpu_state * cpu)
 {
-
+	char * str = ". Exception. System Halted!\n";
 	if (cpu->int_no < 32)
 	{
-		char * str = ". Exception. System Halted!\n";
 		fb_write(exception_messages[cpu->int_no], strlen(exception_messages[cpu->int_no]));
 		fb_write(str, strlen(str));
-
 		for(;;);
 	}
 
