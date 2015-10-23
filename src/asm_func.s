@@ -45,13 +45,47 @@ get_cpuid:
 	mov [edi], edx
 	ret
 
-; get_low_memory
-; stack: 	[esp + 4] pointer to int
+
+; pmmngr_load_PDBR:
+; Loads page table directory
+; stack: 	[esp + 4] pointer to page directory
 ;			[esp	] return address
-global get_low_memory
-get_low_memory:
-	clc
-	xchg bx, bx
-	int 0x12
-	mov [esp + 4], eax
+
+global pmmngr_load_PDBR
+pmmngr_load_PDBR:
+	mov eax, [esp + 4]
+	mov cr3, eax
+	ret
+
+
+; pmmngr_load_PDBR:
+; Loads page table directory
+; stack: 	[esp + 4] pointer to page directory
+;			[esp	] return address
+
+global pmmngr_get_PDBR
+pmmngr_get_PDBR:
+	mov eax, cr3
+	ret
+
+global flush_TLB
+flush_TLB:
+	mov eax, [esp + 4]
+	invlpg [eax]
+	ret
+
+global pmmngr_paging_enable
+pmmngr_paging_enable:
+	mov eax, cr0
+	cmp dword [esp + 4], 1
+	je enable
+	jne disable
+enable:
+	or eax, 0x80000000
+	mov cr0, eax
+	jmp done
+disable:
+	and eax, 0x7FFFFFFF
+	mov cr0, eax
+done:
 	ret
