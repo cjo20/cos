@@ -8,4 +8,5 @@ void fb_clear();
 void fb_backspace();
 void test();
 void printf(char * format, ...);
+void fb_set_colour(unsigned char foreground, unsigned char background);
 #endif
