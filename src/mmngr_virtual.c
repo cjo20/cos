@@ -4,6 +4,7 @@
 #include "mem.h"
 #include "fb.h"
 pdirectory * _cur_directory = 0;
+pdirectory * kernel_page_dir = (pdirectory *) 0xFFFFF000;
 
 pageinfo vmmngr_virt_to_page_index(void * addr)
 {

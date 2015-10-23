@@ -40,7 +40,7 @@ struct pageinfo {
 }__attribute((packed))__;
 typedef struct pageinfo pageinfo;
 
-pdirectory * kernel_page_dir = (pdirectory *) 0xFFFFF000;
+
 int vmmngr_alloc_page(pt_entry * e);
 void vmmngr_initialize();
 void vmmngr_map_page(void * phys, void * virt);
