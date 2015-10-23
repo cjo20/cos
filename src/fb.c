@@ -106,6 +106,9 @@ void fb_clear()
 	{
 		fb_write_cell(i, ' ', 0, 0);
 	}
+	cx = 0;
+	cy = 0;
+	fb_move_cursor(cx, cy);
 }
 
 int fb_write(char * buf, unsigned int len)
