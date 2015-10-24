@@ -1,6 +1,6 @@
 
 BUILDDIR = bin
-OBJECTS = $(BUILDDIR)/asm_func.o $(BUILDDIR)/mem.o $(BUILDDIR)/io.o $(BUILDDIR)/interrupt.o $(BUILDDIR)/int_handler.o $(BUILDDIR)/pic.o $(BUILDDIR)/gdt.o $(BUILDDIR)/serial.o $(BUILDDIR)/fb.o $(BUILDDIR)/timer.o $(BUILDDIR)/keyboard.o $(BUILDDIR)/kmain.o $(BUILDDIR)/loader.o $(BUILDDIR)/lib.o $(BUILDDIR)/cpuinfo.o $(BUILDDIR)/mmngr_phys.o $(BUILDDIR)/mmngr_virtual.o $(BUILDDIR)/pde.o $(BUILDDIR)/pte.o
+OBJECTS = $(BUILDDIR)/asm_func.o $(BUILDDIR)/mem.o $(BUILDDIR)/io.o $(BUILDDIR)/interrupt.o $(BUILDDIR)/int_handler.o $(BUILDDIR)/pic.o $(BUILDDIR)/gdt.o $(BUILDDIR)/serial.o $(BUILDDIR)/fb.o $(BUILDDIR)/timer.o $(BUILDDIR)/keyboard.o $(BUILDDIR)/kmain.o $(BUILDDIR)/loader.o $(BUILDDIR)/lib.o $(BUILDDIR)/cpuinfo.o $(BUILDDIR)/mmngr_phys.o $(BUILDDIR)/mmngr_virtual.o $(BUILDDIR)/pde.o $(BUILDDIR)/pte.o $(BUILDDIR)/console.o
 CC = gcc
 INC_DIR = headers
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector -nostartfiles -nodefaultlibs -I$(INC_DIR) -Wall -Wextra -Werror -x c -c
