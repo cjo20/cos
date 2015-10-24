@@ -111,15 +111,18 @@ StartInHigherHalf:
 ;	invlpg [0]
 
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
-	;xchg bx, bx
+
 	push ebx
 	push kernel_physical_end
 	push kernel_physical_start
 	push kernel_virtual_end
 	push kernel_virtual_start
  	call kmain	
-.loop:
-	jmp .loop
+
+ 	cli
+.hang:
+	hlt
+	jmp .hang 	
 
 KERNEL_STACK_SIZE	equ 4096
 
