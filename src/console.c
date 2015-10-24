@@ -83,6 +83,31 @@ uint8_t process_command(char * cmd_buffer, uint16_t cmd_length)
 		printf("System halting\n");
 		status = 0xFF;
 	}
+	else if (strcmp(cmd, "echo") == 0)
+	{
+		if (*args != 0)
+		{
+			printf("%s\n", args);
+		}
+		
+	}
+	else if (strcmp(cmd, "x") == 0)
+	{
+		if (*args != 0)
+		{
+			char * endPtr = args;
+			while(*endPtr != ' ' && *endPtr != '\n')
+			{
+				endPtr++;
+			}
+
+			*endPtr = 0;
+			unsigned long * addr = (unsigned long *)strtoul(args, 0, 0);
+			printf("Value at %#08x: %#08x\n", addr, *addr);
+		}
+
+
+	}
 	else if (cmd[0] != 0)
 	{
 		printf("%s: Command not found\n", cmd);
