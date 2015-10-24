@@ -16,6 +16,42 @@ void strrev(char *begin, char * end)
 	}
 }
 
+int strcmp(const char * s1, const char * s2)
+{
+	unsigned char c1;
+	unsigned char c2;
+	while (*s1 && (*s1 == *s2))
+	{
+		s1++;
+		s2++;
+	}
+
+	c1 = *((unsigned char *) s1);
+	c2 = *((unsigned char *) s2);
+
+	return c1 - c2;
+}
+
+int atoi(char * str)
+{
+	int res;
+	int sign = 1;
+
+	if (*str == '-')
+	{
+		sign = -1;
+		str++;
+	}
+	while(*str >= '0' && *str <= '9')
+	{
+		res *= 10;
+		res += *str - '0';
+		str++;
+	}
+
+	return res * sign;
+}
+
 void itoa(int value, char * str, int base)
 {
 	static char num[] = "0123456789abcdefghijklmnopqrstuvwxyz";
