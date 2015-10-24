@@ -12,6 +12,8 @@
 #include "mmngr_phys.h"
 #include "mmngr_virtual.h"
 #include "console.h"
+#include "task.h"
+#include "kmalloc.h"
 
 #define DEBUG 0
 #define BUILDSTR __DATE__  " "  __TIME__  "\n"
@@ -153,8 +155,17 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	vmmngr_initialize();
 	printf("\t\t\t\t\t\t"FG_COLOUR_GREEN"[OK]\n");
 
+	printf("Init Kernel heap");
+	if(kmalloc_init(virt_end))
+	{
+		printf("\t\t\t\t\t\t\t\t\t\t\t"FG_COLOUR_GREEN"[OK]\n");
+	}
+	else
+	{
+		printf("\t\t\t\t\t\t\t\t\t\t\t" FG_COLOUR_RED "[FAIL]\n");
+	}
 
-	printf("Enable interrupt handlers");
+	printf("Enable hardware interrupt handlers");
 	enable_handlers();
 	printf("\t\t\t\t\t\t\t\t\t"FG_COLOUR_GREEN"[OK]\n");
 
@@ -190,10 +201,17 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	printf("Kernel Physical memory:\t%#08x -> %#08x\n", phy_start, phy_end);
 	printf("Kernel Virtual memory:\t%#08x -> %#08x\n", virt_start, virt_end);
 
-
 	printf("Chris' simple OS. Built: %s", BUILDSTR);
 
+	asm("xchg %bx, %bx");
+	int * m = kmalloc(sizeof(int));
+	*m = 0xDEADBEEF;
+	printf("allocated int at %#08x. Memory contents: %#x\n", m, *m);
+	printf("Switching to otherTask...\n");
+	preempt();
+	printf("Returned to Kernel\n");
 	start_console();
+
 
 //	while(i)
 //	{/

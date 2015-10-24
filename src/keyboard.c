@@ -101,11 +101,18 @@ static KEYCODE keymap[128] =
   KEY_UNKNOWN
 };
 
+//static unsigned char LED_SCROLL_LOCK 	= 0x1;
+static unsigned char LED_NUM_LOCK 		= 0x2;
+static unsigned char LED_CAPS_LOCK 		= 0x4;
+
+unsigned char led_status;
+
 KEYCODE current_key[32] = { KEY_UNKNOWN };
 uint8_t key_index = 0;
 uint8_t key_head = 0;
 
 int capslock_on = 0;
+int numlock_on = 1;
 
 char shift_on = 0;
 
@@ -118,6 +125,18 @@ char shifted[128] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 					  'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', \
 					  'U', 'V', 'W', 'X', 'Y', 'Z', '[', ']', '#', 0};
 
+
+void set_leds()
+{
+	outb(0x60, 0xED);
+
+	//Wait until keyboard has space to recieve the data
+	while(inb(0x64) & 0x2);
+
+	outb(0x60, led_status);
+	//give it a chance to process the data
+	while(inb(0x64) & 2);
+}
 
 void keyboard_handler(struct cpu_state * r)
 {
@@ -179,9 +198,15 @@ void keyboard_handler(struct cpu_state * r)
 			}
 			else if (mapped_key == KEY_CAPSLOCK)
 			{
-				capslock_on = 1 - capslock_on;
-				outb(0x60, 0xED);
-				outb(0x60, (capslock_on) << 2);
+				capslock_on ^= 0x1;
+				led_status ^= LED_CAPS_LOCK;
+				set_leds();
+			}
+			else if (mapped_key == KEY_NUMLOCK)
+			{
+				numlock_on ^= 0x1;
+				led_status ^= LED_NUM_LOCK;
+				set_leds();
 			}
 			else
 			{
@@ -260,7 +285,7 @@ char getc()
 
 	if (key >= 'a' && key <= 'z')
 	{
-		if (shift_on || capslock_on)
+		if (shift_on ^ capslock_on)
 		{
 			key -= 32;
 		}

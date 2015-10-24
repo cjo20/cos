@@ -16,30 +16,9 @@ pageinfo vmmngr_virt_to_page_index(void * addr)
 	return pginf;
 }
 
-int vmmngr_alloc_page(pt_entry * e)
+ptable * vmmngr_get_ptable_address(virtual_addr addr)
 {
-	void * p = pmmngr_alloc_block();
-	if (!p)
-	{
-		return 0;
-	}
-
-	pt_entry_set_frame(e, (physical_addr) p);
-	pt_entry_add_attrib(e, I86_PTE_PRESENT);
-
-	return 1;
-}
-
-void vmmngr_free_page(pt_entry * e)
-{
-	void * p = (void *) pt_entry_pfn(*e);
-
-	if (p)
-	{
-		pmmngr_free_block(p);
-	}
-
-	pt_entry_del_attrib(e, I86_PTE_PRESENT);
+	return (ptable *) (PAGE_TABLES_ADDRESS + PAGE_DIRECTORY_INDEX(addr) * PAGE_SIZE);
 }
 
 inline pt_entry * vmmngr_ptable_lookup_entry(ptable * p, virtual_addr addr)
@@ -56,11 +35,141 @@ inline pd_entry * vmmngr_pdirectory_lookup_entry(pdirectory * p, virtual_addr ad
 {
 	if (p)
 	{
-		return &p->m_entries[ PAGE_TABLE_INDEX(addr)];
+		return &p->m_entries[ PAGE_DIRECTORY_INDEX(addr)];
 	}
 
 	return 0;
 }
+
+int vmmngr_commit_page(pt_entry * e)
+{
+	void *p = pmmngr_alloc_block();
+
+	if (!p)
+	{
+		return 0;
+	}
+
+	pt_entry_set_frame(e, (physical_addr) p);
+	pt_entry_add_attrib(e, I86_PTE_PRESENT);
+	pt_entry_add_attrib(e, I86_PTE_WRITABLE);
+
+	return 1;
+}
+
+int vmmngr_alloc_page(virtual_addr virt)
+{
+	pdirectory * pd = (pdirectory *) PAGE_DIRECTORY_ADDRESS;
+	pd_entry * pde = &pd->m_entries[PAGE_DIRECTORY_INDEX(virt)];
+
+	if ((!pd) || (!pde))
+	{
+		return 0;
+	}
+
+	if (!pd_entry_is_present(*pde))
+	{
+		ptable *newpt = pmmngr_alloc_block();
+
+		if (!newpt)
+		{
+			return 0;
+		}
+
+		*pde = (pd_entry) 0;
+
+		pd_entry_add_attrib(pde, I86_PDE_PRESENT);
+		pd_entry_add_attrib(pde, I86_PDE_WRITABLE);
+		pd_entry_set_frame(pde, (physical_addr) newpt);
+
+		memset(vmmngr_get_ptable_address(virt), 0, sizeof(ptable));
+
+	}
+
+	ptable * pt = vmmngr_get_ptable_address(virt);
+
+	pt_entry *pte = &pt->m_entries[PAGE_TABLE_INDEX(virt)];
+
+	if  (pt_entry_is_present(*pte))
+	{
+		return 1;
+	}
+
+	if (!vmmngr_commit_page(pte))
+	{
+		return 0;
+	}
+
+	return 1;	
+}
+
+void vmmngr_set_user(virtual_addr addr, int user)
+{
+	ptable * ptable = vmmngr_get_ptable_address(addr);
+	pt_entry * pte = vmmngr_ptable_lookup_entry(ptable, addr);
+	if (user)
+	{
+		pt_entry_add_attrib(pte, I86_PTE_USER);
+	}
+	else
+	{
+		pt_entry_del_attrib(pte, I86_PTE_USER);
+	}
+}
+
+void vmmngr_set_writeable(virtual_addr addr, int writeable)
+{
+	ptable * ptable = vmmngr_get_ptable_address(addr);
+	pt_entry * pte = vmmngr_ptable_lookup_entry(ptable, addr);
+	if (writeable)
+	{
+		pt_entry_add_attrib(pte, I86_PTE_WRITABLE);
+	}
+	else
+	{
+		pt_entry_del_attrib(pte, I86_PTE_WRITABLE);
+	}
+
+}
+
+void vmmngr_free_page(virtual_addr addr)
+{
+	pt_entry * pte;
+
+	pte = (pt_entry *) ((uint32_t) vmmngr_get_ptable_address(addr) + PAGE_TABLE_INDEX(addr));
+
+	pmmngr_free_block((void *) pt_entry_pfn(*pte));
+
+	pt_entry_del_attrib(pte, I86_PTE_PRESENT);
+}
+
+/*
+int vmmngr_alloc_page(pt_entry * e)
+{
+	void * p = pmmngr_alloc_block();
+	if (!p)
+	{
+		return 0;
+	}
+
+	pt_entry_set_frame(e, (physical_addr) p);
+	pt_entry_add_attrib(e, I86_PTE_PRESENT);
+
+	return 1;
+}*/
+
+/*void vmmngr_free_page(pt_entry * e)
+{
+	void * p = (void *) pt_entry_pfn(*e);
+
+	if (p)
+	{
+		pmmngr_free_block(p);
+	}
+
+	pt_entry_del_attrib(e, I86_PTE_PRESENT);
+}*/
+
 
 inline int vmmngr_switch_pdirectory(pdirectory * dir)
 {
@@ -193,3 +302,8 @@ void vmmngr_initialize()
 	pmmngr_paging_enable(1);
 
 }
+
+//pdirectory * clone_directory(pdirectory * src)
+//{
+//	uint32_t phys;
+//}

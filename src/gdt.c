@@ -1,6 +1,6 @@
 #include "gdt.h"
 #include "asm_func.h"
-struct gdt_entry gdt[3];
+struct gdt_entry gdt[5];
 struct gdt_ptr gp;
 
 
@@ -23,8 +23,9 @@ void gdt_install()
 	gp.base = gdt;
 	
 	gdt_set_gate(0, 0, 0 ,0 ,0);
-	gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF);
-	gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0XCF);
-	
+	gdt_set_gate(1, 0, 0xFFFFFFFF, 0x9A, 0xCF); // Code segment
+	gdt_set_gate(2, 0, 0xFFFFFFFF, 0x92, 0XCF); // Data segment
+	gdt_set_gate(3, 0x0, 0xFFFFFFFF, 0xFA, 0xCF); //User mode code segment
+	gdt_set_gate(4, 0x0, 0xFFFFFFFF, 0xF2, 0xCF); //User mode data segment	
 	flush_gdt(&gp);
 }

@@ -5,6 +5,7 @@
 #include "fb.h"
 #include "io.h"
 #include "lib.h"
+#include "stdint.h"
 
 extern void isr0();
 extern void isr1();
@@ -75,6 +76,48 @@ char * exception_messages[] =
 	"0x1F Reserved",
 };
 
+void page_fault(struct cpu_state * cpu)
+{
+	uint32_t faulting_address;
+
+	asm volatile("mov %%cr2, %0" : "=r" (faulting_address));
+
+	int present = !(cpu->err_code  & 0x1);
+	int rw = cpu->err_code & 0x2;
+	int us = cpu->err_code & 0x4;
+	int reserved = cpu->err_code & 0x8;
+	int id = cpu->err_code & 0x10;
+
+	printf("Page fault! (");
+	if (present)
+	{
+		printf("Present ");
+	}
+
+	if (rw)
+	{
+		printf("RW ");
+	}
+
+	if (us)
+	{
+		printf("US ");
+	}
+
+	if (reserved)
+	{
+		printf("reserved ");
+	}
+
+	if (id)
+	{
+		printf("ifetch ");
+	}
+
+	printf(") at %#08x\n", faulting_address);
+	printf("");
+}
+
 
 void interrupt_handler(struct cpu_state * cpu)
 {
@@ -83,12 +126,16 @@ void interrupt_handler(struct cpu_state * cpu)
 	{
 		fb_write(exception_messages[cpu->int_no], strlen(exception_messages[cpu->int_no]));
 		fb_write(str, strlen(str));
+
+		if (cpu->int_no == 14)
+		{
+			page_fault(cpu);
+		}
 		for(;;);
 	}
 
 	return;
 }
-
 
 
 struct idt_entry idt[256];
