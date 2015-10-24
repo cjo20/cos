@@ -87,7 +87,7 @@ void vmmngr_flush_tld_entry(virtual_addr addr)
 void vmmngr_map_page(void * phys, void * virt)
 {
 	pageinfo pginf = vmmngr_virt_to_page_index(virt);
-	pdirectory * page_directory = vmmngr_get_directory();
+	pdirectory * page_directory = kernel_page_dir; //vmmngr_get_directory();
 
 	pd_entry * e = &page_directory->m_entries[PAGE_DIRECTORY_INDEX((uint32_t) virt)];
 	if (!pd_entry_is_present(*e))
@@ -100,8 +100,6 @@ void vmmngr_map_page(void * phys, void * virt)
 
 		ptable * virtual_table = (ptable *) (0xFFC00000 + (pginf.pagetable * 0x1000));
 		pd_entry * entry = &kernel_page_dir->m_entries[pginf.pagetable];
-
-		
 
 		pd_entry_add_attrib(entry, I86_PDE_PRESENT);
 		pd_entry_add_attrib(entry, I86_PDE_WRITABLE);
@@ -124,7 +122,6 @@ void vmmngr_map_page(void * phys, void * virt)
 	pt_entry_set_frame(page, (physical_addr) phys);
 	pt_entry_add_attrib(page, I86_PTE_PRESENT);
 	pt_entry_add_attrib(page, I86_PTE_WRITABLE);
-
 }
 
 void vmmngr_initialize()
