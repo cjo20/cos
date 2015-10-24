@@ -38,6 +38,11 @@ void fb_set_colour(unsigned char foreground, unsigned char background)
 	bg = background;
 }
 
+void fb_set_foreground(unsigned char foreground)
+{
+	fg = foreground;
+}
+
 void newline()
 {
 	cx = 0;
@@ -82,6 +87,10 @@ void fb_putch(char c)
 		{
 			fb_putch(' ');
 		}
+	}
+	else if (c == '\b')
+	{
+		fb_backspace();
 	}
 	else
 	{
@@ -191,11 +200,44 @@ void printf(char * format, ...)
 	char zerofill = 0;
 	int  min_width = 0;
 
+	unsigned char original_fg = fg;
+	unsigned char original_bg = bg;
+
 	while((ch = *(format++)))
 	{
 		p = 0;
 
-	    if(ch != '%')
+		if  (ch == 0x1b)
+		{
+			int code = 0;
+			ch = *(format++);
+			ch = *(format++);
+			code = 0;
+			while(ch >= '0' && ch <= '9')
+			{
+				code *= 10;
+				code += (ch - '0');
+				ch = *(format++);
+			}
+
+			if (code == 0)
+			{
+				fg = original_fg;
+				bg = original_bg;
+			}
+
+			if (code >= 30 && code <= 37)
+			{
+				fg = code - 30;
+			}
+
+			if (code >= 40 && code <= 47)
+			{
+				bg = code - 40;
+			}
+
+		}
+	    else if(ch != '%')
 	    {
 	        fb_putch(ch);
 	    }
@@ -203,6 +245,11 @@ void printf(char * format, ...)
 	    {
 	        ch = *(format++);
 
+	        if (ch == 0x1b)
+	        {
+				ch = *(format++);
+
+	        }
 	        if (ch == '#')
 	        {
 	        	prefix = 1;
@@ -224,9 +271,17 @@ void printf(char * format, ...)
 	        switch(ch)
 	        {
 	            case 'd':
+	           	case 'u':
 	             //print int
 	            	i = (int) va_arg(args, int);
 	            	itoa(i, buf, 10);
+	            	p = buf;
+	                break;
+
+	           	case 'i':
+	             //print int
+	            	i = (int) va_arg(args, int);
+	            	utoa(i, buf, 10);
 	            	p = buf;
 	                break;
 
@@ -300,4 +355,7 @@ void printf(char * format, ...)
 	    zerofill = 0;
 	    min_width = 0;
 	}
+
+	fg = original_fg;
+	bg = original_bg;
 }
