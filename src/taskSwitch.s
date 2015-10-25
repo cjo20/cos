@@ -26,7 +26,7 @@ switchTask:
 	mov [eax + 40], ebx
 	push ebx
 
-	mov eax, [esp + 44]
+	mov eax, [esp + 48]
 	mov ebx, [eax + 4]
 	mov ecx, [eax + 8]
 	mov edx, [eax + 12]
@@ -40,13 +40,13 @@ switchTask:
 	pop eax
 	mov esp, [eax + 24]
 	push eax
-	mov eax, [eax + 44]
+	mov eax, [eax + 40]
 	mov cr3, eax
 	pop eax
 	push eax
 	mov eax, [eax + 32]
 	xchg eax, [esp]
-	mov eax, [eax]
+	mov eax, [eax + 4]
 	ret
 
 

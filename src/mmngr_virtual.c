@@ -233,7 +233,7 @@ void vmmngr_map_page(void * phys, void * virt)
 	pt_entry_add_attrib(page, I86_PTE_WRITABLE);
 }
 
-void vmmngr_initialize()
+void vmmngr_initialize(physical_addr dir_address)
 {
 	int i = 0;
 	int frame = 0;
@@ -272,7 +272,7 @@ void vmmngr_initialize()
 		table2->m_entries[PAGE_TABLE_INDEX(virt)] = page;
 	}
 
-	pdirectory * dir = (pdirectory *) pmmngr_alloc_block();
+	pdirectory * dir = (pdirectory *) dir_address;// pmmngr_alloc_block();
 
 	if (!dir)
 	{

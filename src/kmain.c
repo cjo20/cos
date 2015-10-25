@@ -20,6 +20,15 @@
 typedef void (*call_module_t)(void);
 extern char * fb;
 
+#define MEMBITMAP_PHYSICAL_ADDRESS 	0x00200000
+#define MEMBITMAP_VIRTUAL_ADDRESS	0xFFBBA000
+#define VIDMEM_PHYSICAL_ADDRESS		0x000B8000
+#define VIDMEM_VIRTUAL_ADDRESS		0xFFBFA000
+#define PAGEDIR_PHYSICAL_ADDRESS	0x00080000
+#define PAGEDIR_VIRTUAL_ADDRESS		0xFFFFF000
+#define GDT_PHYSICAL_ADDRESS		0x00000000
+#define GDT_VIRTUAL_ADDRESS			0xFFBB9000
+
 void enable_handlers()
 {
 	IRQ_disable(2);
@@ -34,39 +43,34 @@ void enable_handlers()
 	irq_install_handler(15, irq_spurious_handler);
 	pic_acknowledge(10);
 
-
 	asm("sti");
 }
 
-void init_memory(unsigned int location, unsigned int mem_size, multiboot_info_t * mbinfo)
+void init_memory(unsigned int location, multiboot_info_t * mbinfo)
 {
+	uint32_t mem_size = 0; 
+	uint32_t i = 0;
+
+	location = location;
+
+
 	if (mbinfo->flags & MULTIBOOT_FLAGS_MEMINFO)
 	{
-		mem_size = mbinfo->mem_upper + mbinfo->mem_lower + 1024;
+		printf("Total memory: %dKiB\n", mbinfo->mem_upper + mbinfo->mem_lower + 1024);
 	}
-	else
-	{
-		printf("\t\t\t\t\t\t\t\t\t\t"FG_COLOUR_RED"[FAIL]\n");
-		asm("hlt");
-	}
-
-	pmmngr_init(mem_size, (uint32_t *) location);
-	printf("Initialised memory manager to handle %d kB", mem_size);
-
-	printf("\t\t\t"FG_COLOUR_GREEN"[OK]\n");
-	printf("\tMarking unused regions:");
 
 	if (mbinfo->flags & MULTIBOOT_FLAGS_MMAP)
 	{
+
 		multiboot_memory_map_t * mmap = 0;
 		multiboot_memory_map_t * mmap_end = 0;
 		
 		mbinfo->mmap_addr += 0xC0000000;
-
-		mmap = (multiboot_memory_map_t *) mbinfo->mmap_addr;
 		mmap_end = (multiboot_memory_map_t *) (mbinfo->mmap_addr + mbinfo->mmap_length);
+		
 
-
+		printf("Parsing GRUB memory map...");
+		mmap = (multiboot_memory_map_t *) mbinfo->mmap_addr;
 		while (mmap < mmap_end)
 		{
 			#if DEBUG
@@ -77,16 +81,75 @@ void init_memory(unsigned int location, unsigned int mem_size, multiboot_info_t 
 			#endif
 			if (mmap->type == 1)
 			{
+				mem_size += mmap->length_low;
+				//pmmngr_init_region(mmap->base_addr_low, mmap->length_low);
+			}
+
+			mmap = (multiboot_memory_map_t*) ((unsigned int) mmap + mmap->size + sizeof(unsigned int));
+		}
+		printf("done\n");
+	
+		pmmngr_init(mem_size, (uint32_t *) MEMBITMAP_PHYSICAL_ADDRESS);
+		printf("Initialised physical memory manager to handle %d KiB\n", mem_size >> 10);	
+
+		printf("Parsing GRUB regions...");
+		mmap = (multiboot_memory_map_t *) mbinfo->mmap_addr;
+		while (mmap < mmap_end)
+		{
+			if (mmap->type == 1)
+			{
 				pmmngr_init_region(mmap->base_addr_low, mmap->length_low);
 			}
 
 			mmap = (multiboot_memory_map_t*) ((unsigned int) mmap + mmap->size + sizeof(unsigned int));
 		}
-		printf("\t\t\t\t\t\t\t\t\t"FG_COLOUR_GREEN"[OK]\n");
+		printf("done\n");
+
+		uint32_t usable_memory = pmmngr_get_free_block_count() * PAGE_SIZE >> 10;
+		printf("Initialised %d KiB usable memory\n", usable_memory);
+
+		pmmngr_deinit_region(0x00, 0x1000); // GDT
+		pmmngr_deinit_region(0x7E000, 0x2000); //Kernel stack (8192k)
+		pmmngr_deinit_region(0xA0000, 0x60000); // VRAM/ROM
+		pmmngr_deinit_region(MEMBITMAP_PHYSICAL_ADDRESS, 0x40000); //Physical memory manager bitmap
+		pmmngr_deinit_region(PAGEDIR_PHYSICAL_ADDRESS, 0x4000); //Physical memory manager bitmap
+		pmmngr_deinit_region(0xC0000000, 0x100000); // 1MB max
+
+		printf("Switch to kernel managed virtual memory...");
+		vmmngr_initialize((physical_addr) PAGEDIR_PHYSICAL_ADDRESS);
+		printf("done\n");
+
+		vmmngr_map_page((void *)VIDMEM_PHYSICAL_ADDRESS, (void *)VIDMEM_VIRTUAL_ADDRESS);
+		vmmngr_map_page((void *)VIDMEM_PHYSICAL_ADDRESS + 4096, (void *)VIDMEM_VIRTUAL_ADDRESS+ 4096);
+		vmmngr_map_page((void *)VIDMEM_PHYSICAL_ADDRESS + 8192, (void *)VIDMEM_VIRTUAL_ADDRESS + 8192);
+		vmmngr_map_page((void *)VIDMEM_PHYSICAL_ADDRESS + 12228, (void *)VIDMEM_VIRTUAL_ADDRESS + 12228);
+
+		fb_set_vid_mem((char *) VIDMEM_VIRTUAL_ADDRESS);
+
+		for (i = 0; i < 64; ++i)
+		{
+			vmmngr_map_page((void *) (MEMBITMAP_PHYSICAL_ADDRESS + i * 4096),
+							(void *) (MEMBITMAP_VIRTUAL_ADDRESS + i * 4096));
+		}
+
+		printf("Switch to virtual bitmap address...");
+		pmmngr_set_bitmap_address((uint32_t *) MEMBITMAP_VIRTUAL_ADDRESS);
+		printf("done\n");
+
+		printf("Installing GDT...");
+		vmmngr_map_page((void *) GDT_PHYSICAL_ADDRESS, (void *)GDT_VIRTUAL_ADDRESS);
+		gdt_install();
+		printf("done\n");
+
+		//Don't identity-map first 4MB any longer
+		pd_entry * pde = vmmngr_pdirectory_lookup_entry((pdirectory *) PAGEDIR_VIRTUAL_ADDRESS, 0x00000000);
+		pd_entry_del_attrib(pde, I86_PDE_PRESENT);
+
+	
 	}
 	else
 	{
-		printf("\n\t\t\t\t\t\t\t\t\t\t"FG_COLOUR_RED"[FAIL]\n");
+		printf(FG_COLOUR_RED"Failed to read GRUB memory information\n");
 	}
 }
 
@@ -94,14 +157,13 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 {
 	//char string[32];
 	int i = 0;
-	uint32_t mem_size = 0;
 	uint32_t modules_end = phy_end;
 	multiboot_info_t * mbinfo;
 
 	fb_clear();
-	gdt_install();
-	idt_install();	
-	irq_install();
+
+
+	printf("Kernel size: %#x\n", phy_end - phy_start);
 
 	printf("Setting up int handlers");
 	printf("\t\t\t\t\t\t\t\t\t\t" FG_COLOUR_GREEN "[OK]\n");
@@ -149,11 +211,12 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 #endif	
 
 	printf("Checking memory:\n\t");
-	init_memory(modules_end, mem_size, mbinfo);
-	pmmngr_deinit_region(phy_start, 0x400000);
-	printf("Switch to Kernel managed Virtual Memory");
-	vmmngr_initialize();
-	printf("\t\t\t\t\t\t"FG_COLOUR_GREEN"[OK]\n");
+	init_memory(modules_end, mbinfo);
+
+	idt_install();	
+	irq_install();	
+
+
 
 	printf("Init Kernel heap");
 	if(kmalloc_init(virt_end))
@@ -203,13 +266,11 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	printf("Chris' simple OS. Built: %s", BUILDSTR);
 
-	asm("xchg %bx, %bx");
-	int * m = kmalloc(sizeof(int));
-	*m = 0xDEADBEEF;
-	printf("allocated int at %#08x. Memory contents: %#x\n", m, *m);
-	printf("Switching to otherTask...\n");
-	preempt();
-	printf("Returned to Kernel\n");
+	initTasking();
+    printf("Switching to otherTask... \n");
+    preempt();
+    printf("Returned to mainTask!\n");
+
 	start_console();
 
 

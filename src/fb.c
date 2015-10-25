@@ -18,6 +18,11 @@ static char * fb = (char *)0xC00B8000;
 static unsigned int cx = 0, cy = 0;
 static unsigned char fg = 7, bg = 0;
 
+
+void fb_set_vid_mem(char * new_fb)
+{
+	fb = (char *) new_fb;
+}
 /** fb_move_cursor:
 *	Moves the cursor of the framebuffer to the given position
 *

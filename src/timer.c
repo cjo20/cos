@@ -1,7 +1,7 @@
 #include "io.h"
 #include "fb.h"
 #include "interrupt.h"
-
+#include "task.h"
 #define COMMAND_PORT 	0x43
 #define TIMER_PORT 		0x40
 
@@ -67,6 +67,9 @@ void timer_handler(struct cpu_state * r)
 		//char * msg = "One second has passed\n";
 		//fb_write(msg, strlen(msg));
 	}
+
+	preempt();
+
 }
 
 void timer_wait(unsigned int ticks)

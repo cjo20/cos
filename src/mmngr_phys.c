@@ -79,7 +79,15 @@ void pmmngr_init(size_t mem_size, uint32_t * bitmap)
 	_mmngr_max_blocks = (mem_size * 1024) / PMMNGR_BLOCK_SIZE;
 	_mmngr_used_blocks = pmmngr_get_block_count();
 
-	memset(_mmngr_memory_map, 0xf, pmmngr_get_block_count() / PMMNGR_BLOCKS_PER_BYTE);
+	uint32_t size = pmmngr_get_block_count() / PMMNGR_BLOCKS_PER_BYTE;
+	if (size & 0x3)
+	{
+		memset(_mmngr_memory_map, 0xff, size);
+	}
+	else
+	{
+		memsetd(_mmngr_memory_map, 0xff, size >> 2);	
+	}
 }
 
 void pmmngr_init_region(physical_addr base, size_t size)
@@ -137,4 +145,9 @@ void pmmngr_free_block(void * p)
 
 	mmap_unset(frame);
 	_mmngr_used_blocks--;
+}
+
+void pmmngr_set_bitmap_address(uint32_t * addr)
+{
+	_mmngr_memory_map = addr;
 }

@@ -47,11 +47,12 @@ int vmmngr_alloc_page(virtual_addr virt);
 void vmmngr_free_page(virtual_addr addr);
 void vmmngr_set_user(virtual_addr addr, int user);
 void vmmngr_set_writeable(virtual_addr addr, int writeable);
-void vmmngr_initialize();
+void vmmngr_initialize(physical_addr dir_address);
 void vmmngr_map_page(void * phys, void * virt);
 
 ptable * vmmngr_get_ptable_address(virtual_addr addr);
 pt_entry * vmmngr_ptable_lookup_entry(ptable * p, virtual_addr addr);
+pd_entry * vmmngr_pdirectory_lookup_entry(pdirectory * p, virtual_addr addr);
 
 #endif
 

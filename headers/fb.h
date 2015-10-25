@@ -9,7 +9,7 @@ void fb_backspace();
 void test();
 void printf(char * format, ...);
 void fb_set_colour(unsigned char foreground, unsigned char background);
-
+void fb_set_vid_mem(char * new_fb);
 
 #define FG_COLOUR_NRM 		"\x1B[0m"
 #define FG_COLOUR_BLACK 	"\x1B[31m"

@@ -20,5 +20,6 @@ void pmmngr_init_region(physical_addr base, size_t size);
 void pmmngr_deinit_region(physical_addr base, size_t size);
 void * pmmngr_alloc_block();
 void pmmngr_free_block(void * p);
-
+uint32_t pmmngr_get_free_block_count();
+void pmmngr_set_bitmap_address(uint32_t * addr);
 #endif

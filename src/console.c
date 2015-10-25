@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "mem.h"
 #include "fb.h"
+#include "task.h"
 char prompt[32]  = ">";
 
 #define BUFFER_LEN 512
@@ -133,6 +134,7 @@ void start_console()
 		{
 			return;
 		}
+		preempt();
 	}
 }
 
