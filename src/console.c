@@ -129,7 +129,6 @@ void start_console()
 
 	while (1)
 	{
-		printf("Looping\n");
 		memset(command_buffer, 0, BUFFER_LEN);
 		read_command(command_buffer, &command_length);
 		status = process_command(command_buffer, command_length);
