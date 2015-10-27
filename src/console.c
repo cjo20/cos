@@ -41,6 +41,9 @@ char * read_command(char * cmd_buffer, uint16_t * cmd_length)
 			cmd_buffer[*cmd_length] = c;
 			*cmd_length = *cmd_length + 1;
 		}
+		int i = 0;
+		asm("pushf; pop %%eax; mov %%eax, %0;" : "=d"(i) : : "%eax");
+		printf("main EFLAGS: %#x\n", i);
 	} while (c != KEY_RETURN);
 
 	fb_putch('\n');
@@ -127,6 +130,7 @@ void start_console()
 
 	while (1)
 	{
+		printf("Looping\n");
 		memset(command_buffer, 0, BUFFER_LEN);
 		read_command(command_buffer, &command_length);
 		status = process_command(command_buffer, command_length);
@@ -134,7 +138,7 @@ void start_console()
 		{
 			return;
 		}
-		preempt();
+		//preempt();
 	}
 }
 

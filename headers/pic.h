@@ -1,6 +1,8 @@
 #ifndef INCLUDE_PIC_H
 #define INCLUDE_PIC_H
 
+#include "interrupt.h"
+
 void pic_acknowledge(unsigned int interrupt);
 
 void IRQ_set_mask(unsigned char irq_line);

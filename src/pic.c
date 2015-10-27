@@ -1,6 +1,7 @@
+#include "pic.h"
+
 #include "asm_func.h"
 #include "io.h"
-#include "interrupt.h"
 #include "fb.h"
 #include "lib.h"
 
@@ -231,27 +232,24 @@ void irq_install()
 
 void irq_handler(struct cpu_state *r)
 {
-	char str[30];
 	void (*handler)(struct cpu_state * r);
 	handler = irq_routines[r->int_no];
 
+	if (r->int_no == 1)
+	{
+		printf("Int1\n");
+	}
 	if (handler)
 	{
-		//fb_writeString("IRQ handled: ");	
-		//utoa(r->int_no, str, 10);
-		//fb_writeString(str);
-		//fb_writeString("\n");
 		handler(r);
 	}
 	else
 	{
-		
-		fb_writeString("IRQ not handled: ");	
-		utoa(r->int_no, str, 10);
-		fb_writeString(str);
-		fb_writeString("\n");
+		printf("IRQ %d not handled\n", r->int_no);	
 	}
 	
+	if (r->int_no == 1)
+	printf("ACK");
 	pic_acknowledge(r->int_no);
 }
 

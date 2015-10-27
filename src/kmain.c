@@ -37,13 +37,15 @@ void enable_handlers()
 	IRQ_clear_mask(0);
 	
 	init_keyboard();
+	pic_acknowledge(10);
+
+	asm("sti");
+
 	irq_install_handler(1, keyboard_handler);
 	irq_install_handler(0, timer_handler);
 	irq_install_handler(7, irq_spurious_handler);
 	irq_install_handler(15, irq_spurious_handler);
-	pic_acknowledge(10);
 
-	asm("sti");
 }
 
 void init_memory(unsigned int location, multiboot_info_t * mbinfo)
@@ -216,8 +218,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	idt_install();	
 	irq_install();	
 
-
-
+	
 	printf("Init Kernel heap");
 	if(kmalloc_init(virt_end))
 	{
@@ -229,6 +230,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	}
 
 	printf("Enable hardware interrupt handlers");
+	initTasking();
 	enable_handlers();
 	printf("\t\t\t\t\t\t\t\t\t"FG_COLOUR_GREEN"[OK]\n");
 
@@ -265,12 +267,8 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	printf("Kernel Virtual memory:\t%#08x -> %#08x\n", virt_start, virt_end);
 
 	printf("Chris' simple OS. Built: %s", BUILDSTR);
-
-	initTasking();
-    printf("Switching to otherTask... \n");
-    preempt();
-    printf("Returned to mainTask!\n");
-
+	asm("pushf; pop %%eax; mov %%eax, %0;" : "=d"(i) : : "%eax");
+	printf("EFLAGS: %#x\n", i);
 	start_console();
 
 

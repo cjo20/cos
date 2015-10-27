@@ -2,6 +2,7 @@
 #include "fb.h"
 #include "interrupt.h"
 #include "task.h"
+#include "pic.h"
 #define COMMAND_PORT 	0x43
 #define TIMER_PORT 		0x40
 
@@ -48,6 +49,7 @@ unsigned int timer_ticks = 0;
 void timer_handler(struct cpu_state * r)
 {
 	static char even = 0;
+
 	r = r;
 	timer_ticks++;
 
@@ -64,11 +66,11 @@ void timer_handler(struct cpu_state * r)
 
 		even++;
 		even %= 2;
-		//char * msg = "One second has passed\n";
-		//fb_write(msg, strlen(msg));
 	}
 
-	preempt();
+
+	if (timer_ticks % 2 == 0)
+		preempt();
 
 }
 
