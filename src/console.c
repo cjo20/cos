@@ -43,7 +43,6 @@ char * read_command(char * cmd_buffer, uint16_t * cmd_length)
 		}
 		int i = 0;
 		asm("pushf; pop %%eax; mov %%eax, %0;" : "=d"(i) : : "%eax");
-		printf("main EFLAGS: %#x\n", i);
 	} while (c != KEY_RETURN);
 
 	fb_putch('\n');

@@ -237,7 +237,7 @@ void irq_handler(struct cpu_state *r)
 
 	if (r->int_no == 1)
 	{
-		printf("Int1\n");
+		//printf("Int1\n");
 	}
 	if (handler)
 	{
@@ -248,8 +248,6 @@ void irq_handler(struct cpu_state *r)
 		printf("IRQ %d not handled\n", r->int_no);	
 	}
 	
-	if (r->int_no == 1)
-	printf("ACK");
 	pic_acknowledge(r->int_no);
 }
 

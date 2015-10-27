@@ -68,8 +68,8 @@ void timer_handler(struct cpu_state * r)
 		even %= 2;
 	}
 
-
-	if (timer_ticks % 2 == 0)
+		pic_acknowledge(0);
+	//if (timer_ticks % 2 == 0)
 		preempt();
 
 }

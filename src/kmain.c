@@ -37,14 +37,15 @@ void enable_handlers()
 	IRQ_clear_mask(0);
 	
 	init_keyboard();
-	pic_acknowledge(10);
+	
 
-	asm("sti");
+	pic_acknowledge(10);
 
 	irq_install_handler(1, keyboard_handler);
 	irq_install_handler(0, timer_handler);
 	irq_install_handler(7, irq_spurious_handler);
 	irq_install_handler(15, irq_spurious_handler);
+	asm("sti");
 
 }
 
@@ -235,6 +236,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 	printf("\t\t\t\t\t\t\t\t\t"FG_COLOUR_GREEN"[OK]\n");
 
 	test();	
+	#if 0
 	printf("Timer Test:5");
 	char c[1];
 
@@ -246,7 +248,7 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 		fb_write(c, 1);
 	}
 	printf("\n");
-
+	#endif
 	serial_set_up();
 	serial_write("hello, world\n", 13);
 	serial_write("how are you?\n", 13);
@@ -268,7 +270,6 @@ int kmain(int virt_start, int virt_end, int phy_start, int phy_end, unsigned int
 
 	printf("Chris' simple OS. Built: %s", BUILDSTR);
 	asm("pushf; pop %%eax; mov %%eax, %0;" : "=d"(i) : : "%eax");
-	printf("EFLAGS: %#x\n", i);
 	start_console();
 
 
